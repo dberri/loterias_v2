@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('draws', function (Blueprint $table) {
             $table->id();
-            $table->string('type'); // megasena, quina, etc
+            $table->string('type')->index(); // megasena, quina, etc
+            $table->integer('draw_number')->index();
             $table->json('raw_data');
             $table->timestamps();
         });
