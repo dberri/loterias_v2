@@ -28,8 +28,6 @@ class ScrapeDraw extends Command
      */
     public function handle()
     {
-        // try to instantiate the game enum
-        // if it fails, exit with fail code
         $game = GamesEnum::tryFrom($this->argument('game'));
         if (!$game) {
             $this->error('Invalid game');

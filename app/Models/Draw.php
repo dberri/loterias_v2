@@ -14,4 +14,14 @@ class Draw extends Model
             'type' => GamesEnum::class,
         ];
     }
+
+    public function page()
+    {
+        return $this->hasOne(DrawPage::class);
+    }
+
+    public function scopeWithoutPage($query)
+    {
+        return $query->whereDoesntHave('page');
+    }
 }
