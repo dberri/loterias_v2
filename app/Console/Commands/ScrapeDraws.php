@@ -8,7 +8,7 @@ use App\Services\Scraper;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 
-class ScrapeDraw extends Command
+class ScrapeDraws extends Command
 {
     /**
      * The name and signature of the console command.
