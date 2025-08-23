@@ -5,15 +5,13 @@ namespace App\Filament\Resources\PillarPages\Schemas;
 use App\Enums\GamesEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Z3d0X\FilamentFabricator\Forms\Components\PageBuilder;
 
 class PillarPageForm
 {
-    public static function configure(Schema $schema): Schema
+    public static function configure(?array $schema = null): array
     {
-        return $schema
-            ->components([
+        return [
                 Select::make('game')
                     ->label('Game')
                     ->options([
@@ -39,6 +37,6 @@ class PillarPageForm
                 PageBuilder::make('content')
                     ->label('Content')
                     ->required(),
-            ]);
+            ];
     }
 }

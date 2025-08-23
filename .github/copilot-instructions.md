@@ -1,3 +1,9 @@
+<project-context>
+A Laravel-based lottery data scraping and content generation system that automatically fetches Brazilian lottery results and generates content pages using OpenAI.
+This application scrapes lottery draw data from the official Caixa Econômica Federal API and generates content pages for lottery results using artificial intelligence. It supports multiple lottery games including Mega-Sena, Lotofácil, and Quina.
+Goals:
+- Get a lot of traffic to earn money with ads.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -9,7 +15,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
 - php - 8.3.20
-- filament/filament (FILAMENT) - v4
+- filament/filament (FILAMENT) - v3
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
 - livewire/livewire (LIVEWIRE) - v3

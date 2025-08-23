@@ -8,10 +8,8 @@ use App\Filament\Resources\PillarPages\Pages\ListPillarPages;
 use App\Filament\Resources\PillarPages\Schemas\PillarPageForm;
 use App\Filament\Resources\PillarPages\Tables\PillarPagesTable;
 use App\Models\PillarPage;
-use BackedEnum;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
 
 class PillarPageResource extends Resource
@@ -19,28 +17,23 @@ class PillarPageResource extends Resource
     protected static ?string $model = PillarPage::class;
 
     protected static ?string $navigationLabel = 'Pillar Pages';
-    
+
     protected static ?string $modelLabel = 'Pillar Page';
-    
+
     protected static ?string $pluralModelLabel = 'Pillar Pages';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationIcon = 'heroicon-o-document';
 
-    public static function form(Schema $schema): Schema
+    public static function form(Form $form): Form
     {
-        return PillarPageForm::configure($schema);
+        return $form
+            ->columns(1)
+            ->schema(PillarPageForm::configure());
     }
 
     public static function table(Table $table): Table
     {
         return PillarPagesTable::configure($table);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
