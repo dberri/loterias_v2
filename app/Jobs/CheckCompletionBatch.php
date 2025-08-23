@@ -24,11 +24,12 @@ class CheckCompletionBatch implements ShouldQueue
     public function handle(): void
     {
         // Check if the batch is completed
-        $service = new ContentCreator();
+        $service = new ContentCreator;
         $batchData = $service->retrieveBatch($this->batchId);
 
         if ($batchData['status'] === 'in_progress') {
             self::dispatch($this->batchId)->delay(now()->addMinutes(10));
+
             return;
         }
 

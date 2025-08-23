@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Enums\GamesEnum;
 use App\Services\Scraper;
 use Illuminate\Console\Command;
-use InvalidArgumentException;
 
 class ScrapeDraw extends Command
 {
@@ -29,8 +28,9 @@ class ScrapeDraw extends Command
     public function handle()
     {
         $game = GamesEnum::tryFrom($this->argument('game'));
-        if (!$game) {
+        if (! $game) {
             $this->error('Invalid game');
+
             return Command::FAILURE;
         }
 

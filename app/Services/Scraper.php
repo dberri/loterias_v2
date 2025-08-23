@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Enums\GamesEnum;
 use App\Models\Draw;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Scraper
 {
@@ -27,7 +27,7 @@ class Scraper
     {
         $number = $this->drawNumber ?: $this->getLatestDraw($this->enum)?->draw_number + 1;
 
-        $url = $this->endpoint . $this->enum->value . '/' . $number;
+        $url = $this->endpoint.$this->enum->value.'/'.$number;
 
         $response = Http::withHeaders($this->getHeaders())->get($url);
 
@@ -37,10 +37,11 @@ class Scraper
                 'draw_number' => $number,
                 'response' => $response->json(),
             ]);
+
             return;
         }
 
-        $draw = new Draw();
+        $draw = new Draw;
         $draw->type = $this->enum->value;
         $draw->draw_number = $number;
         $draw->raw_data = $response->json();

@@ -6,7 +6,6 @@ use App\Enums\GamesEnum;
 use App\Models\Draw;
 use App\Services\Scraper;
 use Illuminate\Console\Command;
-use InvalidArgumentException;
 
 class ScrapeDraws extends Command
 {
@@ -30,12 +29,13 @@ class ScrapeDraws extends Command
     public function handle()
     {
         $game = GamesEnum::tryFrom($this->argument('game'));
-        if (!$game) {
+        if (! $game) {
             $this->error('Invalid game');
+
             return Command::FAILURE;
         }
 
-        $this->info('Scraping ' . $this->argument('quantity') . ' draws for ' . $game->value);
+        $this->info('Scraping '.$this->argument('quantity').' draws for '.$game->value);
 
         $availableDraws = Draw::where('type', $game)
             ->orderByDesc('draw_number')
@@ -47,7 +47,7 @@ class ScrapeDraws extends Command
                 continue;
             }
 
-            $this->info('Scraping draw ' . $game->value . ' ' . $i);
+            $this->info('Scraping draw '.$game->value.' '.$i);
             $scraper = new Scraper($game, $i);
             $scraper->scrape();
             $runningQuantity--;

@@ -29,12 +29,13 @@ class CreatePages extends Command
     public function handle()
     {
         $game = GamesEnum::tryFrom($this->argument('game'));
-        if (!$game) {
+        if (! $game) {
             $this->error('Invalid game');
+
             return Command::FAILURE;
         }
 
-        $this->info('Creating ' . $this->argument('quantity') . ' pages for ' . $game->value . ' draws');
+        $this->info('Creating '.$this->argument('quantity').' pages for '.$game->value.' draws');
 
         $draws = Draw::where('type', $game)
             ->withoutPage()
@@ -42,7 +43,7 @@ class CreatePages extends Command
             ->limit($this->argument('quantity'))
             ->get();
 
-        $service = new ContentCreator();
+        $service = new ContentCreator;
         $service->createContentForDraws($draws);
     }
 }

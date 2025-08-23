@@ -29,18 +29,19 @@ class CreateContent extends Command
     public function handle()
     {
         $game = GamesEnum::tryFrom($this->argument('game'));
-        if (!$game) {
+        if (! $game) {
             $this->error('Invalid game');
+
             return Command::FAILURE;
         }
 
-        $this->info('Creating content for ' . $game->value . ' draw ' . $this->argument('draw_number'));
+        $this->info('Creating content for '.$game->value.' draw '.$this->argument('draw_number'));
 
         $draw = Draw::where('type', $game->value)
             ->where('draw_number', $this->argument('draw_number'))
             ->first();
 
-        $service = new ContentCreator();
+        $service = new ContentCreator;
         $service->createContent($draw);
 
         return Command::SUCCESS;

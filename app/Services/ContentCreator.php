@@ -27,7 +27,7 @@ class ContentCreator
         $page = $draw->page()->create([
             'title' => 'Pending',
             'content' => $content,
-            'url' => '/'. $draw->type->value . '/'. $draw->draw_number,
+            'url' => '/'.$draw->type->value.'/'.$draw->draw_number,
         ]);
 
         return $page;
@@ -40,7 +40,7 @@ class ContentCreator
             $prompts[] = [
                 'draw_number' => $draw->draw_number,
                 'type' => $draw->type->value,
-                'prompt' => $this->getPrompt($draw)
+                'prompt' => $this->getPrompt($draw),
             ];
         }
 
@@ -52,8 +52,8 @@ class ContentCreator
             $draw->page()->create([
                 'title' => 'Pending',
                 'content' => 'Pending',
-                'url' => '/'. $draw->type->value . '/'. $draw->draw_number,
-                'batch_id' => $batch['id']
+                'url' => '/'.$draw->type->value.'/'.$draw->draw_number,
+                'batch_id' => $batch['id'],
             ]);
         });
 
@@ -68,14 +68,14 @@ class ContentCreator
         $file = fopen(storage_path(self::FILE_PATH), 'w');
 
         foreach ($prompts as $prompt) {
-            $customId = 'prompt_' . $prompt['type'] . '_' . $prompt['draw_number'];
+            $customId = 'prompt_'.$prompt['type'].'_'.$prompt['draw_number'];
             $data = [
                 'custom_id' => $customId,
                 'method' => 'POST',
                 'url' => '/v1/chat/completions',
-                'body' => $this->getRequestBody($prompt['prompt'])
+                'body' => $this->getRequestBody($prompt['prompt']),
             ];
-            fwrite($file, json_encode($data) . "\n");
+            fwrite($file, json_encode($data)."\n");
         }
 
         fclose($file);
@@ -98,7 +98,7 @@ class ContentCreator
         $response = OpenAI::batches()->create([
             'input_file_id' => $fileId,
             'endpoint' => '/v1/chat/completions',
-            'completion_window' => '24h'
+            'completion_window' => '24h',
         ]);
 
         // $response->id; // 'batch_abc123'
@@ -146,10 +146,10 @@ class ContentCreator
     public function updatePagesContent(string $batchId)
     {
         $file = fopen(storage_path("app/private/$batchId.jsonl"), 'r');
-        while (!feof($file)) {
+        while (! feof($file)) {
             $line = fgets($file);
             $data = json_decode($line, true);
-            if (!$data) {
+            if (! $data) {
                 continue;
             }
 
@@ -157,7 +157,7 @@ class ContentCreator
             $type = explode('_', $customId)[1]; // mega-sena
             $drawNumber = (int) explode('_', $customId)[2]; // 2345
 
-            if (!$type || !$drawNumber) {
+            if (! $type || ! $drawNumber) {
                 // @todo log error
                 continue;
             }
@@ -168,7 +168,7 @@ class ContentCreator
                 ->where('draw_number', $drawNumber)
                 ->first();
 
-            if (!$draw) {
+            if (! $draw) {
                 // @todo log error
                 continue;
             }
@@ -177,7 +177,7 @@ class ContentCreator
                 ->where('draw_id', $draw->id)
                 ->first();
 
-            if (!$drawPage) {
+            if (! $drawPage) {
                 // @todo log error
                 continue;
             }
@@ -198,9 +198,9 @@ class ContentCreator
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => "You are an online journalist writing a news article about the latest lottery draw. All of your responses should be in Brazilian Portuguese. No Exceptions. You should always write articles with a focus on SEO and user engagement. If the lottery draw includes a jackpot winner, you should use a congratulatory tone. If there are no jackpot winners, you should use a tone of anticipation for the next draw. You should not create a title for the article. Only the body of the article."
+                    'content' => 'You are an online journalist writing a news article about the latest lottery draw. All of your responses should be in Brazilian Portuguese. No Exceptions. You should always write articles with a focus on SEO and user engagement. If the lottery draw includes a jackpot winner, you should use a congratulatory tone. If there are no jackpot winners, you should use a tone of anticipation for the next draw. You should not create a title for the article. Only the body of the article.',
                 ],
-                ['role' => 'user', 'content' => $prompt]
+                ['role' => 'user', 'content' => $prompt],
             ],
         ];
     }
@@ -210,7 +210,7 @@ class ContentCreator
         $data = $draw->raw_data;
 
         $winners = array_map(function ($item) {
-            return $item['municipio'] . ' - ' . $item['uf'] . ': ' . $item['ganhadores'] . ' ganhadores';
+            return $item['municipio'].' - '.$item['uf'].': '.$item['ganhadores'].' ganhadores';
         }, $data['listaMunicipioUFGanhadores']);
 
         $placeholders = [
@@ -219,11 +219,11 @@ class ContentCreator
             '{ACUMULADO}' => $data['acumulado'] ? 'sim' : 'não',
             '{NEXT_DRAW_DATE}' => $data['dataProximoConcurso'],
             '{PLACE}' => $data['nomeMunicipioUFSorteio'],
-            '{LISTA_DEZENAS}' => join(', ', $data['listaDezenas']),
+            '{LISTA_DEZENAS}' => implode(', ', $data['listaDezenas']),
             '{NEXT_PRIZE}' => $this->formatMoney($data['valorEstimadoProximoConcurso']),
             '{WINNERS_FAIXA_1}' => data_get($data, 'listaRateioPremio.0.numeroDeGanhadores', ''),
             '{PRIZE_FAIXA_1}' => $this->formatMoney(data_get($data, 'listaRateioPremio.0.valorPremio', 0)),
-            '{WINNERS_LOCATIONS}' => join(';', $winners),
+            '{WINNERS_LOCATIONS}' => implode(';', $winners),
             '{WINNERS_FAIXA_2}' => data_get($data, 'listaRateioPremio.1.numeroDeGanhadores', ''),
             '{PRIZE_FAIXA_2}' => $this->formatMoney(data_get($data, 'listaRateioPremio.1.valorPremio', 0)),
             '{WINNERS_FAIXA_3}' => data_get($data, 'listaRateioPremio.2.numeroDeGanhadores', ''),
@@ -240,6 +240,7 @@ class ContentCreator
     private function formatMoney(int $value): string
     {
         $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
+
         return numfmt_format_currency($fmt, $value, 'BRL');
     }
 
@@ -264,7 +265,7 @@ class ContentCreator
             'Mega-Sena: nenhuma aposta acerta 6 dezenas e prêmio acumula para {PRIZE_FAIXA_1}',
             'Nenhum apostador ganha o concurso {DRAW} da Mega-Sena e prêmio acumula para {PRIZE_FAIXA_1}',
         ];
-    
+
         $oneWinner = [
             'Mega-Sena: sortudo acerta 6 dezenas do concurso {DRAW} e vai receber prêmio de {PRIZE_FAIXA_1}',
             'Mega-Sena: uma aposta ganha sozinha o prêmio de {PRIZE_FAIXA_1}',
@@ -273,7 +274,7 @@ class ContentCreator
             'Sortudo ganha concurso {DRAW} da Mega-Sena e leva o prêmio de {PRIZE_FAIXA_1} sozinho',
             'Apostador ganha concurso {DRAW} da Mega-Sena e receberá o prêmio de {PRIZE_FAIXA_1} sozinho',
         ];
-    
+
         $multipleWinners = [
             'Mega-Sena: {NUMBER_OF_WINNERS} apostas vão dividir prêmio de {PRIZE_FAIXA_1}',
             'Mega-Sena: {NUMBER_OF_WINNERS} apostas vão dividir prêmio de {PRIZE_FAIXA_1}',

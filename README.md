@@ -180,17 +180,17 @@ sail npm run dev
 
 ### Testing
 ```bash
-# Run PHPUnit tests
-sail artisan test
+# Run Pest tests
+pest-sail
 
 # Run specific test suite
-sail artisan test --testsuite=Feature
+pest-sail --group=Feature
 ```
 
 ### Code Style
 ```bash
 # Format code with Laravel Pint
-sail artisan pint
+vendor/bin/pint
 ```
 
 ## API Integration
