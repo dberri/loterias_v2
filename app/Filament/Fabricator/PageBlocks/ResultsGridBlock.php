@@ -61,17 +61,17 @@ class ResultsGridBlock extends PageBlock
     public static function mutateData(array $data): array
     {
         $query = Draw::query()
-            ->with(['drawPage'])
-            ->where('game', $data['lottery_type'])
-            ->orderBy('draw_date', 'desc');
+            ->with(['page'])
+            ->where('type', $data['lottery_type'])
+            ->orderBy('draw_number', 'desc');
             
         // Apply date filters if provided
         if (!empty($data['date_from'])) {
-            $query->whereDate('draw_date', '>=', $data['date_from']);
+            // $query->whereDate('draw_date', '>=', $data['date_from']);
         }
         
         if (!empty($data['date_to'])) {
-            $query->whereDate('draw_date', '<=', $data['date_to']);
+            // $query->whereDate('draw_date', '<=', $data['date_to']);
         }
         
         // Filter accumulated draws only

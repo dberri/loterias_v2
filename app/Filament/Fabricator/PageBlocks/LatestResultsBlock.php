@@ -59,11 +59,11 @@ class LatestResultsBlock extends PageBlock
     public static function mutateData(array $data): array
     {
         $query = Draw::query()
-            ->with(['drawPage'])
-            ->orderBy('draw_date', 'desc');
+            ->with(['page'])
+            ->orderBy('draw_number', 'desc');
             
         if ($data['lottery_type'] !== 'all') {
-            $query->where('game', $data['lottery_type']);
+            $query->where('type', $data['lottery_type']);
         }
         
         $data['results'] = $query->limit($data['limit'] ?? 5)->get();

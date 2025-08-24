@@ -83,7 +83,7 @@ class StatisticsCardsBlock extends PageBlock
     
     private static function getGameStatistics(string $game, array $config): array
     {
-        $query = Draw::where('game', $game);
+        $query = Draw::where('type', $game);
         
         $stats = [
             'game_name' => ucfirst(str_replace(['_', 'mega', 'sena'], [' ', 'Mega', 'Sena'], $game)),
@@ -94,19 +94,19 @@ class StatisticsCardsBlock extends PageBlock
         }
         
         if ($config['show_total_winners'] ?? false) {
-            $stats['total_winners'] = $query->sum('winners_count') ?: 0;
+            // $stats['total_winners'] = $query->sum('winners_count') ?: 0;
         }
         
         if ($config['show_accumulated_count'] ?? false) {
-            $stats['accumulated_count'] = $query->where('accumulated', true)->count();
+            // $stats['accumulated_count'] = $query->where('accumulated', true)->count();
         }
         
         if ($config['show_biggest_prize'] ?? false) {
-            $stats['biggest_prize'] = $query->max('estimated_prize') ?: 0;
+            // $stats['biggest_prize'] = $query->max('estimated_prize') ?: 0;
         }
         
         if ($config['show_latest_draw'] ?? false) {
-            $latestDraw = $query->orderBy('draw_date', 'desc')->first();
+            $latestDraw = $query->orderBy('draw_number', 'desc')->first();
             $stats['latest_draw'] = $latestDraw;
         }
         
