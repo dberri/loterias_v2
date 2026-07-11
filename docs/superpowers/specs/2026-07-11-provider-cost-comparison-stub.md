@@ -1,22 +1,23 @@
 # LLM Provider Cost Comparison — Spec Stub
 
 **Date:** 2026-07-11
-**Status:** Backlog (not yet designed)
-**Depends on:** [SEO Draw-Page Generation](./2026-07-11-seo-draw-page-generation-design.md) (implements the `BatchContentProvider` interface it defines)
+**Status:** Backlog (deferred)
+**Depends on:** [Provider Drivers Design](./2026-07-11-provider-drivers-design.md)
 
 ## Intent
 
-Build Anthropic and Gemini drivers behind the `BatchContentProvider` interface and compare cost + output quality against OpenAI, then pick the cheapest provider that meets the quality bar.
+Compare cost + output quality across already-implemented providers and define a production selection policy.
 
-## Likely scope
+## Context
 
-- `AnthropicBatchProvider` (Message Batches + structured output) — verify current API via the `claude-api` skill.
-- `GeminiBatchProvider` (batch mode + `responseSchema`) — verify current API.
-- Normalize each to the interface's `submitBatch` / `pollBatch` / `fetchResults` / `generateOne`.
-- Cost + quality benchmark on a fixed sample of draws (same prompt/context, compare token cost and page quality).
+Provider implementation work is now captured in:
+
+- [LLM Provider Drivers (OpenAI extraction + Anthropic + Gemini) — Design](./2026-07-11-provider-drivers-design.md)
+
+This stub now tracks only the deferred cost/quality comparison work.
 
 ## Open questions
 
-- Do all three support async batch with per-request `custom_id` correlation the same way? (Confirm live.)
-- Structured-output fidelity per provider (does the JSON stay schema-valid without repair?).
-- Is a single default provider enough, or route per-game / per-cost-tier?
+- What fixed draw sample and rubric should be used for quality scoring?
+- Which cost inputs should be normalized (input/output tokens, retries, failed runs)?
+- How should tie-breakers work when cost is lower but quality is borderline?
