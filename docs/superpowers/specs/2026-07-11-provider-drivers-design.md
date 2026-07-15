@@ -1,8 +1,14 @@
 # LLM Provider Drivers (OpenAI extraction + Anthropic + Gemini) — Design
 
 **Date:** 2026-07-11  
-**Status:** Approved (design), pending implementation plan  
+**Status:** ✅ Superseded — spec + design complete at `.specs/features/provider-drivers/`  
 **Depends on:** [SEO Draw-Page Generation](./2026-07-11-seo-draw-page-generation-design.md)
+
+> **One item below was dropped in the 2026-07-13 transcription:** the "extract the OpenAI path into an
+> `OpenAIBatchProvider`" work. The SEO draw-page design already creates `App\Services\Providers\OpenAiContentProvider`
+> as a first-class `BatchContentProvider` implementation — once that ships, there is nothing left to extract. The
+> intent behind it (*prove the OpenAI path really conforms to the contract*) is preserved as **PROVIDER-04**: OpenAI
+> must pass the same shared contract suite as the new drivers. Class naming also follows SEO's (`*ContentProvider`).
 
 ## Intent
 

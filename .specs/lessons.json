@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 4,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "ac_gap::when a task retires a model service e g drawpage contentcreator grep for remaining references across the whole entry point chain commands jobs before marking the retiring task done not just in the model layer dangling old code left wired into live console commands becomes a fatal error trap not just dead code",
+      "text": "When a task retires a model/service (e.g. DrawPage, ContentCreator), grep for remaining references across the whole entry-point chain (commands, jobs) before marking the retiring task done, not just in the model layer — dangling old code left wired into live console commands becomes a fatal-error trap, not just dead code.",
+      "signal": "ac_gap",
+      "scope": "app/Services,app/Console/Commands,app/Jobs",
+      "status": "candidate",
+      "features": [
+        "seo-draw-page-generation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "DRAWPAGE-01,07,08,13,14 / tasks.md T19-T22 (app/Services,app/Console/Commands,app/Jobs)"
+      ],
+      "created": "2026-07-15T17:57:37Z",
+      "last_seen": "2026-07-15T17:57:37Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::for a multi phase tasks md verify progress against actual git log file diffs per task not against tasks md checkboxes an implementing agent may commit real work through several phases while never ticking a single checkbox making the file itself an unreliable progress signal",
+      "text": "For a multi-phase tasks.md, verify progress against actual git log + file diffs per task, not against tasks.md checkboxes — an implementing agent may commit real work through several phases while never ticking a single checkbox, making the file itself an unreliable progress signal.",
+      "signal": "ac_gap",
+      "scope": ".specs/features",
+      "status": "candidate",
+      "features": [
+        "seo-draw-page-generation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md Phase 5-6 (T18-T26) (.specs/features)"
+      ],
+      "created": "2026-07-15T17:57:37Z",
+      "last_seen": "2026-07-15T17:57:37Z"
+    },
+    {
+      "id": "L-003",
+      "key": "spec_deviation::an agent can execute every remaining task in a plan correctly and still skip the skill s atomic commit per task rule entirely leaving a large uncommitted diff with no per task revert boundary always check git status for uncommitted work spanning multiple tasks not just git log when verifying a resumed execute pass",
+      "text": "An agent can execute every remaining task in a plan correctly and still skip the skill's atomic-commit-per-task rule entirely, leaving a large uncommitted diff with no per-task revert boundary — always check 'git status' for uncommitted work spanning multiple tasks, not just 'git log', when verifying a resumed Execute pass.",
+      "signal": "spec_deviation",
+      "scope": ".specs/features",
+      "status": "candidate",
+      "features": [
+        "seo-draw-page-generation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md Execution Protocol / Critical Rules (one atomic commit per task) (.specs/features)"
+      ],
+      "created": "2026-07-15T18:40:17Z",
+      "last_seen": "2026-07-15T18:40:17Z"
+    }
+  ]
+}

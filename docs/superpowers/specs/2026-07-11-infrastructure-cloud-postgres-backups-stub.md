@@ -1,8 +1,14 @@
 # Infrastructure: Laravel Cloud, Postgres, Backups — Spec Stub
 
 **Date:** 2026-07-11
-**Status:** Backlog (not yet designed)
+**Status:** ✅ Superseded — spec + design complete at `.specs/features/infrastructure-cloud-postgres-backups/`
 **Depends on:** loosely on all other specs (hosts them); no hard code dependency.
+
+> The open questions below were resolved on 2026-07-13: Postgres in **all** environments (AD-008, SQLite/MySQL
+> retired); dual-layer backups (Laravel Cloud native + portable NDJSON export to object storage); no separate raw-JSON
+> archive (`raw_data` is already in the export); cold starts accepted for web/worker but **not** the scheduler.
+> Note the cutover is far cheaper than this stub assumed — per AD-003 only `draws` needs migrating, since pages are
+> regenerated. **That window closes once page generation runs at scale.**
 
 ## Intent
 
