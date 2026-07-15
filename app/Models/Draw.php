@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\GamesEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Draw extends Model
 {
@@ -23,9 +24,9 @@ class Draw extends Model
         ];
     }
 
-    public function page()
+    public function page(): HasOne
     {
-        return $this->hasOne(DrawPage::class);
+        return $this->hasOne(Page::class);
     }
 
     public function scopeWithoutPage($query)
@@ -42,11 +43,6 @@ class Draw extends Model
             GamesEnum::QUINA => 'Quina',
             default => $this->type->value,
         };
-    }
-
-    public function getDrawnNumbersAttribute(): array
-    {
-        return $this->raw_data['listaDezenas'] ?? [];
     }
 
     public function getIsAccumulatedAttribute(): bool
@@ -92,7 +88,9 @@ class Draw extends Model
 
     public function getNextDrawDateAttribute(): ?string
     {
-        return $this->raw_data['dataProximoConcurso'] ?? null;
+        $date = $this->raw_data['dataProximoConcurso'] ?? null;
+
+        return filled($date) ? $date : null;
     }
 
     public function getNextDrawNumberAttribute(): ?int
