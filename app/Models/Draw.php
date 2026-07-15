@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use App\Enums\GamesEnum;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Draw extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'type',
         'draw_number',
