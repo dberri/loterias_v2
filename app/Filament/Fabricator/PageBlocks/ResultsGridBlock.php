@@ -22,7 +22,7 @@ class ResultsGridBlock extends PageBlock
                     ->label('Block Title')
                     ->default('Resultados dos Sorteios')
                     ->required(),
-                    
+
                 Select::make('lottery_type')
                     ->label('Lottery Type')
                     ->options([
@@ -31,7 +31,7 @@ class ResultsGridBlock extends PageBlock
                         'quina' => 'Quina',
                     ])
                     ->required(),
-                    
+
                 TextInput::make('results_per_page')
                     ->label('Results Per Page')
                     ->numeric()
@@ -39,19 +39,19 @@ class ResultsGridBlock extends PageBlock
                     ->minValue(5)
                     ->maxValue(50)
                     ->required(),
-                    
+
                 DatePicker::make('date_from')
                     ->label('Filter From Date (Optional)')
                     ->format('Y-m-d'),
-                    
+
                 DatePicker::make('date_to')
                     ->label('Filter To Date (Optional)')
                     ->format('Y-m-d'),
-                    
+
                 Toggle::make('show_accumulated_only')
                     ->label('Show Only Accumulated Draws')
                     ->default(false),
-                    
+
                 Toggle::make('enable_pagination')
                     ->label('Enable Pagination')
                     ->default(true),
@@ -64,27 +64,27 @@ class ResultsGridBlock extends PageBlock
             ->with(['page'])
             ->where('type', $data['lottery_type'])
             ->orderBy('draw_number', 'desc');
-            
+
         // Apply date filters if provided
-        if (!empty($data['date_from'])) {
-            // $query->whereDate('draw_date', '>=', $data['date_from']);
+        if (! empty($data['date_from'])) {
+            $query->whereDate('draw_date', '>=', $data['date_from']);
         }
-        
-        if (!empty($data['date_to'])) {
-            // $query->whereDate('draw_date', '<=', $data['date_to']);
+
+        if (! empty($data['date_to'])) {
+            $query->whereDate('draw_date', '<=', $data['date_to']);
         }
-        
+
         // Filter accumulated draws only
         if ($data['show_accumulated_only'] ?? false) {
-            $query->where('accumulated', true);
+            $query->where('raw_data->acumulado', true);
         }
-        
+
         if ($data['enable_pagination'] ?? true) {
             $data['results'] = $query->paginate($data['results_per_page'] ?? 20);
         } else {
             $data['results'] = $query->limit($data['results_per_page'] ?? 20)->get();
         }
-        
+
         return $data;
     }
 }
