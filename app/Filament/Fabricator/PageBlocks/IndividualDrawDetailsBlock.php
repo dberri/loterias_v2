@@ -57,6 +57,16 @@ class IndividualDrawDetailsBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
+        $data = array_merge([
+            'show_prize_breakdown' => true,
+            'show_winners_by_tier' => true,
+            'show_statistics' => false,
+            'show_comparison' => false,
+            'custom_title' => null,
+            'previous_draw' => null,
+            'number_frequency' => [],
+        ], $data);
+
         if (! empty($data['draw_id'])) {
             $draw = Draw::with(['page'])->find($data['draw_id']);
             $data['draw'] = $draw;

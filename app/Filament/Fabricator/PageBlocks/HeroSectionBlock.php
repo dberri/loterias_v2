@@ -94,6 +94,22 @@ class HeroSectionBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
+        $data = array_merge([
+            'title' => null,
+            'subtitle' => null,
+            'description' => null,
+            'primary_cta_text' => 'Ver Resultados',
+            'primary_cta_url' => null,
+            'secondary_cta_text' => null,
+            'secondary_cta_url' => null,
+            'background_style' => 'gradient-blue',
+            'background_image' => null,
+            'text_alignment' => 'center',
+            'show_lottery_highlights' => false,
+            'height' => 'medium',
+            'latest_results' => [],
+        ], $data);
+
         $drawId = $data['draw_id'] ?? null;
 
         if ($drawId) {

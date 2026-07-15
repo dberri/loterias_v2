@@ -27,21 +27,21 @@
                     
                     <!-- Numbers -->
                     <div class="flex flex-wrap gap-2 mb-4">
-                        @if($result->numbers)
-                            @foreach(json_decode($result->numbers) as $number)
+                        @if($result->drawn_numbers)
+                            @foreach($result->drawn_numbers as $number)
                                 <span class="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-blue-600 rounded-full">
-                                    {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                                    {{ $number }}
                                 </span>
                             @endforeach
                         @endif
                     </div>
                     
                     <!-- Prize Information -->
-                    @if($show_prizes && $result->estimated_prize)
+                    @if($show_prizes && $result->main_prize)
                         <div class="text-sm">
                             <span class="text-gray-600">Prêmio estimado:</span>
                             <span class="font-semibold text-green-600">
-                                R$ {{ number_format($result->estimated_prize, 2, ',', '.') }}
+                                R$ {{ number_format($result->main_prize, 2, ',', '.') }}
                             </span>
                         </div>
                     @endif

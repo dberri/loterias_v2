@@ -53,11 +53,11 @@
                                     <div class="mb-2 text-xs text-gray-600">
                                         {{-- {{ $stats['latest_draw']->draw_date->format('d/m/Y') }} --}}
                                     </div>
-                                    @if($stats['latest_draw']->numbers)
+                                    @if($stats['latest_draw']->drawn_numbers)
                                         <div class="flex flex-wrap justify-center gap-1">
-                                            @foreach(array_slice(json_decode($stats['latest_draw']->numbers), 0, 6) as $number)
+                                            @foreach(array_slice($stats['latest_draw']->drawn_numbers, 0, 6) as $number)
                                                 <span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-600 rounded-full">
-                                                    {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                                                    {{ $number }}
                                                 </span>
                                             @endforeach
                                         </div>

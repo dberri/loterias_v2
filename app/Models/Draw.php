@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GamesEnum;
+use App\Enums\PageStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -121,5 +122,10 @@ class Draw extends Model
         $estimate = $this->raw_data['valorEstimadoProximoConcurso'] ?? null;
 
         return is_numeric($estimate) ? (float) $estimate : null;
+    }
+
+    public function getDrawPageAttribute(): ?Page
+    {
+        return $this->page?->status === PageStatus::Published ? $this->page : null;
     }
 }

@@ -93,17 +93,17 @@
                                     Concurso {{ $result->draw_number }}
                                 </div>
                                 <div class="flex justify-center gap-1 flex-wrap">
-                                    @if($result->numbers)
-                                        @foreach(array_slice(json_decode($result->numbers), 0, 6) as $number)
+                                    @if($result->drawn_numbers)
+                                        @foreach(array_slice($result->drawn_numbers, 0, 6) as $number)
                                             <span class="inline-flex items-center justify-center w-6 h-6 bg-white text-blue-700 text-xs font-bold rounded-full">
-                                                {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                                                {{ $number }}
                                             </span>
                                         @endforeach
                                     @endif
                                 </div>
-                                @if($result->estimated_prize)
+                                @if($result->main_prize)
                                     <div class="text-white text-xs mt-2">
-                                        R$ {{ number_format($result->estimated_prize, 0, ',', '.') }}
+                                        R$ {{ number_format($result->main_prize, 0, ',', '.') }}
                                     </div>
                                 @endif
                             </div>

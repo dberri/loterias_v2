@@ -48,6 +48,11 @@ final class DrawPagePrompt
         ];
     }
 
+    public static function prompt(Draw $draw): string
+    {
+        return json_encode(self::context($draw), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    }
+
     public static function schema(): array
     {
         return [

@@ -42,7 +42,7 @@
                                 {{-- {{ $result->draw_date->format('d/m/Y') }} --}}
                             </div>
                         </div>
-                        @if($result->accumulated)
+                        @if($result->is_accumulated)
                             <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">
                                 Acumulou
                             </span>
@@ -51,26 +51,26 @@
                     
                     <!-- Numbers -->
                     <div class="flex flex-wrap gap-1 mb-4">
-                        @if($result->numbers)
-                            @foreach(json_decode($result->numbers) as $number)
+                        @if($result->drawn_numbers)
+                            @foreach($result->drawn_numbers as $number)
                                 <span class="inline-flex items-center justify-center text-xs font-bold text-white bg-blue-600 rounded-full w-7 h-7">
-                                    {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                                    {{ $number }}
                                 </span>
                             @endforeach
                         @endif
                     </div>
                     
                     <!-- Prize Info -->
-                    @if($result->estimated_prize)
+                    @if($result->main_prize)
                         <div class="mb-2 text-xs text-gray-600">
-                            Prêmio: <span class="font-semibold text-green-600">R$ {{ number_format($result->estimated_prize, 2, ',', '.') }}</span>
+                            Prêmio: <span class="font-semibold text-green-600">R$ {{ number_format($result->main_prize, 2, ',', '.') }}</span>
                         </div>
                     @endif
                     
                     <!-- Winners Info -->
-                    @if($result->winners_count && $result->winners_count > 0)
+                    @if($result->main_prize_winners && $result->main_prize_winners > 0)
                         <div class="mb-3 text-xs text-gray-600">
-                            {{ $result->winners_count }} ganhador{{ $result->winners_count > 1 ? 'es' : '' }}
+                            {{ $result->main_prize_winners }} ganhador{{ $result->main_prize_winners > 1 ? 'es' : '' }}
                         </div>
                     @endif
                     

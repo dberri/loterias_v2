@@ -146,8 +146,20 @@ class RichTextContentBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
+        $data['title'] = $data['title'] ?? null;
+        $data['title_level'] = $data['title_level'] ?? 'h2';
+        $data['content'] = $data['content'] ?? null;
+        $data['container_style'] = $data['container_style'] ?? 'default';
+        $data['background_color'] = $data['background_color'] ?? 'blue';
+        $data['text_alignment'] = $data['text_alignment'] ?? 'left';
+        $data['content_width'] = $data['content_width'] ?? 'container';
+        $data['add_padding'] = $data['add_padding'] ?? true;
+        $data['add_margin'] = $data['add_margin'] ?? true;
+        $data['anchor_id'] = $data['anchor_id'] ?? null;
+        $data['schema_type'] = $data['schema_type'] ?? null;
+
         // Generate CSS classes based on settings
-        $containerClasses = ['mb-8']; // Base margin
+        $containerClasses = ['mb-8'];
         
         if (!($data['add_margin'] ?? true)) {
             $containerClasses = ['mb-0'];
@@ -206,7 +218,7 @@ class RichTextContentBlock extends PageBlock
         
         $data['container_classes'] = implode(' ', $containerClasses);
         $data['content_classes'] = implode(' ', $contentClasses);
-        
+
         return $data;
     }
 }

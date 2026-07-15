@@ -60,6 +60,31 @@ class ResultsGridBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
+        $data = array_merge([
+            'title' => 'Resultados dos Sorteios',
+            'lottery_type' => 'megasena',
+            'results_per_page' => 20,
+            'date_from' => null,
+            'date_to' => null,
+            'show_accumulated_only' => false,
+            'enable_pagination' => true,
+        ], $data);
+
+        $drawId = $data['draw_id'] ?? null;
+
+        if ($drawId) {
+            $draw = Draw::query()->with(['page'])->find($drawId);
+
+            if ($draw) {
+                $data['lottery_type'] = $draw->type->value;
+                $data['enable_pagination'] = false;
+                $data['results_per_page'] = 1;
+                $data['results'] = collect([$draw]);
+
+                return $data;
+            }
+        }
+
         $query = Draw::query()
             ->with(['page'])
             ->where('type', $data['lottery_type'])

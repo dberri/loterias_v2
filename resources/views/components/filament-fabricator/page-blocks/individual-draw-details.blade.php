@@ -6,7 +6,7 @@
         <!-- Header -->
         <div class="pb-6 mb-6 border-b border-gray-200">
             <h1 class="mb-2 text-3xl font-bold text-gray-900">
-                {{ $custom_title ?: "Resultado {$draw->game} - Concurso {$draw->draw_number}" }}
+                {{ $custom_title ?: "Resultado {$draw->game_name} - Concurso {$draw->draw_number}" }}
             </h1>
             <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <span class="flex items-center">
@@ -15,7 +15,7 @@
                     </svg>
                     {{-- {{ $draw->draw_date->format('d/m/Y') }} --}}
                 </span>
-                @if($draw->accumulated)
+                @if($draw->is_accumulated)
                     <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">
                         Acumulou
                     </span>
@@ -27,10 +27,10 @@
         <div class="mb-8">
             <h2 class="mb-4 text-xl font-semibold text-gray-900">Números Sorteados</h2>
             <div class="flex flex-wrap justify-center gap-3 md:justify-start">
-                @if($draw->numbers)
-                    @foreach(json_decode($draw->numbers) as $number)
+                @if($draw->drawn_numbers)
+                    @foreach($draw->drawn_numbers as $number)
                         <div class="flex items-center justify-center w-12 h-12 text-lg font-bold text-white bg-blue-600 rounded-full shadow-lg">
-                            {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                            {{ $number }}
                         </div>
                     @endforeach
                 @endif
@@ -38,7 +38,7 @@
         </div>
         
         <!-- Prize Information -->
-        @if($show_prize_breakdown && $draw->estimated_prize)
+        @if($show_prize_breakdown && $draw->main_prize)
             <div class="mb-8">
                 <h2 class="mb-4 text-xl font-semibold text-gray-900">Informações do Prêmio</h2>
                 <div class="p-4 border border-green-200 rounded-lg bg-green-50">
@@ -46,14 +46,14 @@
                         <div>
                             <h3 class="mb-2 font-medium text-green-800">Prêmio Estimado</h3>
                             <div class="text-2xl font-bold text-green-600">
-                                R$ {{ number_format($draw->estimated_prize, 2, ',', '.') }}
+                                R$ {{ number_format($draw->main_prize, 2, ',', '.') }}
                             </div>
                         </div>
-                        @if($draw->winners_count)
+                        @if($draw->main_prize_winners)
                             <div>
                                 <h3 class="mb-2 font-medium text-green-800">Ganhadores</h3>
                                 <div class="text-2xl font-bold text-green-600">
-                                    {{ $draw->winners_count }}
+                                    {{ $draw->main_prize_winners }}
                                 </div>
                             </div>
                         @endif
@@ -63,7 +63,7 @@
         @endif
         
         <!-- Winners by Tier (if available) -->
-        @if($show_winners_by_tier && $draw->prize_distribution)
+        @if($show_winners_by_tier && !empty($draw->raw_data['listaRateioPremio'] ?? []))
             <div class="mb-8">
                 <h2 class="mb-4 text-xl font-semibold text-gray-900">Distribuição de Prêmios</h2>
                 <div class="overflow-x-auto">
@@ -76,7 +76,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach(json_decode($draw->prize_distribution, true) ?? [] as $tier)
+                            @foreach($draw->raw_data['listaRateioPremio'] ?? [] as $tier)
                                 <tr>
                                     <td class="px-4 py-3 text-sm font-medium text-gray-900">
                                         {{ $tier['matches'] ?? 'N/A' }} acertos
@@ -138,9 +138,9 @@
                         <div>
                             <h4 class="mb-2 font-medium text-blue-800">Concurso {{ $draw->draw_number }}</h4>
                             <div class="flex flex-wrap gap-1">
-                                @foreach(json_decode($draw->numbers) as $number)
+                                @foreach($draw->drawn_numbers as $number)
                                     <span class="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-blue-600 rounded-full">
-                                        {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                                        {{ $number }}
                                     </span>
                                 @endforeach
                             </div>
@@ -148,9 +148,9 @@
                         <div>
                             <h4 class="mb-2 font-medium text-blue-800">Concurso {{ $previous_draw->draw_number }}</h4>
                             <div class="flex flex-wrap gap-1">
-                                @foreach(json_decode($previous_draw->numbers) as $number)
+                                @foreach($previous_draw->drawn_numbers as $number)
                                     <span class="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-gray-500 rounded-full">
-                                        {{ str_pad($number, 2, '0', STR_PAD_LEFT) }}
+                                        {{ $number }}
                                     </span>
                                 @endforeach
                             </div>
@@ -158,8 +158,8 @@
                     </div>
                     
                     @php
-                        $currentNumbers = json_decode($draw->numbers, true) ?? [];
-                        $previousNumbers = json_decode($previous_draw->numbers, true) ?? [];
+                        $currentNumbers = $draw->drawn_numbers ?? [];
+                        $previousNumbers = $previous_draw->drawn_numbers ?? [];
                         $repeatedNumbers = array_intersect($currentNumbers, $previousNumbers);
                     @endphp
                     
@@ -167,7 +167,7 @@
                         <div class="pt-4 mt-4 border-t border-blue-200">
                             <p class="text-sm text-blue-700">
                                 <strong>{{ count($repeatedNumbers) }}</strong> número(s) se repetiu(ram): 
-                                <span class="font-medium">{{ implode(', ', array_map(fn($n) => str_pad($n, 2, '0', STR_PAD_LEFT), $repeatedNumbers)) }}</span>
+                                <span class="font-medium">{{ implode(', ', $repeatedNumbers) }}</span>
                             </p>
                         </div>
                     @else

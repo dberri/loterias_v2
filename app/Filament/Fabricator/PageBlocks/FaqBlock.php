@@ -87,14 +87,19 @@ class FaqBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
+        $data['title'] = $data['title'] ?? 'Perguntas Frequentes';
+        $data['layout_style'] = $data['layout_style'] ?? 'accordion';
+        $data['category'] = $data['category'] ?? 'general';
+        $data['faqs'] = $data['faqs'] ?? [];
+
         // Filter FAQs by category if specified
         if (!empty($data['category']) && $data['category'] !== 'general') {
             $data['faqs'] = collect($data['faqs'] ?? [])
-                ->filter(fn($faq) => ($faq['category'] ?? 'general') === $data['category'])
+                ->filter(fn ($faq) => ($faq['category'] ?? 'general') === $data['category'])
                 ->values()
                 ->toArray();
         }
-        
+
         return $data;
     }
 }

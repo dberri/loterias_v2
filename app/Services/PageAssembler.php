@@ -30,7 +30,7 @@ class PageAssembler
                 'draw_id' => $draw->id,
                 'title' => $payload['title'],
                 'slug' => $payload['slug'],
-                'layout' => 'default',
+                'layout' => 'draw-page',
                 'blocks' => $this->buildBlocks($draw, $payload),
                 'status' => config('content.auto_publish', false)
                     ? PageStatusEnum::Published->value
@@ -56,7 +56,7 @@ class PageAssembler
                 'draw_id' => $draw->id,
                 'title' => $this->failedTitle($draw),
                 'slug' => $this->pageSlug($draw),
-                'layout' => 'default',
+                'layout' => 'draw-page',
                 'blocks' => [],
                 'status' => PageStatusEnum::Failed->value,
                 'generated_at' => null,
@@ -201,8 +201,9 @@ class PageAssembler
             'type' => 'hero-section',
             'data' => [
                 'draw_id' => $draw->id,
-                'headline' => $payload['title'],
+                'title' => $payload['title'],
                 'subtitle' => $payload['meta_description'],
+                'description' => $payload['meta_description'],
             ],
         ];
     }
