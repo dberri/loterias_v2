@@ -8,6 +8,7 @@ use App\Enums\PageStatus;
 use App\Models\Draw;
 use App\Services\PageAssembler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -124,6 +125,95 @@ class PageAssemblerTest extends TestCase
         $this->assertCount(4, $page->blocks);
         $this->assertSame('hero-section', $page->blocks[0]['type']);
         $this->assertSame('related-links', $page->blocks[3]['type']);
+    }
+
+    public function test_block_order_keeps_the_app_spine_first_ai_blocks_in_order_and_related_links_last(): void
+    {
+        $draw = $this->draw();
+
+        $page = (new PageAssembler)->assemble($draw, GenerationResult::valid('page_megasena_2608', [
+            'title' => 'Resultado Mega-Sena concurso 2608',
+            'slug' => 'mega-sena/resultado/2608',
+            'meta_description' => 'Resumo do concurso 2608',
+            'enrichment_blocks' => [
+                [
+                    'type' => 'faq',
+                    'items' => [
+                        ['q' => 'Pergunta 1', 'a' => 'Resposta 1'],
+                    ],
+                ],
+                [
+                    'type' => 'rich-text',
+                    'html' => '<p>Texto</p>',
+                ],
+                [
+                    'type' => 'how-to-play',
+                    'html' => '<p>Como jogar</p>',
+                ],
+            ],
+        ]));
+
+        $this->assertSame(
+            [
+                'hero-section',
+                'results-grid',
+                'individual-draw-details',
+                'faq',
+                'rich-text-content',
+                'how-to-play',
+                'related-links',
+            ],
+            array_column($page->blocks, 'type'),
+        );
+        $this->assertNotNull($page->generated_at);
+    }
+
+    public function test_auto_publish_false_keeps_generated_and_true_publishes(): void
+    {
+        $draw = $this->draw();
+        $result = GenerationResult::valid('page_megasena_2608', [
+            'title' => 'Resultado Mega-Sena concurso 2608',
+            'slug' => 'mega-sena/resultado/2608',
+            'meta_description' => 'Resumo do concurso 2608',
+            'enrichment_blocks' => [],
+        ]);
+
+        Config::set('content.auto_publish', false);
+        $draftPage = (new PageAssembler)->assemble($draw, $result);
+        $draftPage->refresh();
+
+        Config::set('content.auto_publish', true);
+        $publishedPage = (new PageAssembler)->assemble($draw, $result);
+        $publishedPage->refresh();
+
+        $this->assertSame(PageStatus::Generated, $draftPage->status);
+        $this->assertSame(PageStatus::Published, $publishedPage->status);
+        Config::set('content.auto_publish', false);
+    }
+
+    public function test_auto_publish_true_does_not_override_invalid_results(): void
+    {
+        Config::set('content.auto_publish', true);
+        $draw = $this->draw();
+
+        $page = (new PageAssembler)->assemble($draw, GenerationResult::valid('page_megasena_2608', [
+            'title' => '',
+            'slug' => 'mega-sena/resultado/2608',
+            'meta_description' => 'Resumo',
+            'enrichment_blocks' => [
+                [
+                    'type' => 'faq',
+                    'items' => [
+                        ['q' => 'Pergunta 1', 'a' => 'Resposta 1'],
+                    ],
+                ],
+            ],
+        ]));
+        $page->refresh();
+
+        $this->assertSame(PageStatus::Failed, $page->status);
+        $this->assertNotSame(PageStatus::Published, $page->status);
+        Config::set('content.auto_publish', false);
     }
 
     private function draw(): Draw
