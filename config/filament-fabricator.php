@@ -27,7 +27,7 @@ return [
         'web',
     ],
 
-    'page-model' => \Z3d0X\FilamentFabricator\Models\Page::class,
+    'page-model' => \App\Models\Page::class,
 
     'page-resource' => \Z3d0X\FilamentFabricator\Resources\PageResource::class,
 
