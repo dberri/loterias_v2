@@ -22,31 +22,31 @@ class HeroSectionBlock extends PageBlock
                     ->label('Main Title')
                     ->required()
                     ->columnSpanFull(),
-                    
+
                 TextInput::make('subtitle')
                     ->label('Subtitle')
                     ->columnSpanFull(),
-                    
+
                 Textarea::make('description')
                     ->label('Description')
                     ->rows(3)
                     ->columnSpanFull(),
-                    
+
                 TextInput::make('primary_cta_text')
                     ->label('Primary CTA Text')
                     ->default('Ver Resultados'),
-                    
+
                 TextInput::make('primary_cta_url')
                     ->label('Primary CTA URL')
                     ->url(),
-                    
+
                 TextInput::make('secondary_cta_text')
                     ->label('Secondary CTA Text (Optional)'),
-                    
+
                 TextInput::make('secondary_cta_url')
                     ->label('Secondary CTA URL')
                     ->url(),
-                    
+
                 Select::make('background_style')
                     ->label('Background Style')
                     ->options([
@@ -59,14 +59,14 @@ class HeroSectionBlock extends PageBlock
                     ])
                     ->default('gradient-blue')
                     ->required(),
-                    
+
                 FileUpload::make('background_image')
                     ->label('Background Image')
                     ->image()
                     ->directory('hero-backgrounds')
                     ->visibility('public')
                     ->hidden(fn (callable $get) => $get('background_style') !== 'image'),
-                    
+
                 Select::make('text_alignment')
                     ->label('Text Alignment')
                     ->options([
@@ -75,11 +75,11 @@ class HeroSectionBlock extends PageBlock
                         'right' => 'Right',
                     ])
                     ->default('center'),
-                    
+
                 Toggle::make('show_lottery_highlights')
                     ->label('Show Latest Lottery Highlights')
                     ->default(false),
-                    
+
                 Select::make('height')
                     ->label('Section Height')
                     ->options([
@@ -94,16 +94,35 @@ class HeroSectionBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
+        $drawId = $data['draw_id'] ?? null;
+
+        if ($drawId) {
+            $draw = \App\Models\Draw::with(['page'])->find($drawId);
+
+            if ($draw) {
+                $data['draw'] = $draw;
+                $data['page'] = $draw->page;
+                $data['game_name'] = $draw->game_name;
+                $data['draw_number'] = $draw->draw_number;
+                $data['draw_date'] = $draw->draw_date?->toDateString();
+                $data['drawn_numbers'] = $draw->drawn_numbers;
+                $data['formatted_main_prize'] = $draw->formatted_main_prize;
+                $data['main_prize'] = $draw->main_prize;
+                $data['main_prize_winners'] = $draw->main_prize_winners;
+                $data['is_accumulated'] = $draw->is_accumulated;
+                $data['location'] = $draw->location;
+            }
+        }
+
         if ($data['show_lottery_highlights'] ?? false) {
-            // Get latest results for highlights
-            $data['latest_results'] = \App\Models\Draw::with(['drawPage'])
+            $data['latest_results'] = \App\Models\Draw::with(['page'])
                 ->orderBy('draw_date', 'desc')
                 ->limit(3)
                 ->get()
-                ->groupBy('game')
-                ->map(fn($draws) => $draws->first());
+                ->groupBy(fn ($draw) => $draw->type->value)
+                ->map(fn ($draws) => $draws->first());
         }
-        
+
         return $data;
     }
 }
