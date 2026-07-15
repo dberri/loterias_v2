@@ -8,6 +8,7 @@ use App\Services\Providers\OpenAiContentProvider;
 use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 use OpenAI\Responses\Batches\BatchResponse;
+use OpenAI\Responses\Chat\CreateResponse;
 use OpenAI\Responses\Files\CreateResponse as FileCreateResponse;
 use Tests\TestCase;
 
@@ -15,7 +16,7 @@ class OpenAiContentProviderTest extends TestCase
 {
     public function test_submit_batch_writes_jsonl_uploads_it_and_returns_batch_id(): void
     {
-        $provider = new OpenAiContentProvider();
+        $provider = new OpenAiContentProvider;
         $request = $this->request();
 
         $fake = OpenAI::fake([
@@ -95,7 +96,7 @@ class OpenAiContentProviderTest extends TestCase
             BatchResponse::fake($this->batchAttributes('in_progress')),
         ]);
 
-        $this->assertSame(BatchStatus::InProgress, (new OpenAiContentProvider())->pollBatch('batch_123'));
+        $this->assertSame(BatchStatus::InProgress, (new OpenAiContentProvider)->pollBatch('batch_123'));
     }
 
     public function test_poll_batch_maps_completed_status(): void
@@ -104,7 +105,7 @@ class OpenAiContentProviderTest extends TestCase
             BatchResponse::fake($this->batchAttributes('completed')),
         ]);
 
-        $this->assertSame(BatchStatus::Completed, (new OpenAiContentProvider())->pollBatch('batch_123'));
+        $this->assertSame(BatchStatus::Completed, (new OpenAiContentProvider)->pollBatch('batch_123'));
     }
 
     public function test_poll_batch_maps_expired_status(): void
@@ -113,7 +114,7 @@ class OpenAiContentProviderTest extends TestCase
             BatchResponse::fake($this->batchAttributes('expired')),
         ]);
 
-        $this->assertSame(BatchStatus::Expired, (new OpenAiContentProvider())->pollBatch('batch_123'));
+        $this->assertSame(BatchStatus::Expired, (new OpenAiContentProvider)->pollBatch('batch_123'));
     }
 
     public function test_poll_batch_maps_cancelled_status_to_failed(): void
@@ -122,7 +123,7 @@ class OpenAiContentProviderTest extends TestCase
             BatchResponse::fake($this->batchAttributes('cancelled')),
         ]);
 
-        $this->assertSame(BatchStatus::Failed, (new OpenAiContentProvider())->pollBatch('batch_123'));
+        $this->assertSame(BatchStatus::Failed, (new OpenAiContentProvider)->pollBatch('batch_123'));
     }
 
     public function test_poll_batch_maps_unknown_status_to_failed_and_logs_it(): void
@@ -139,7 +140,7 @@ class OpenAiContentProviderTest extends TestCase
             BatchResponse::fake($this->batchAttributes('mystery')),
         ]);
 
-        $this->assertSame(BatchStatus::Failed, (new OpenAiContentProvider())->pollBatch('batch_123'));
+        $this->assertSame(BatchStatus::Failed, (new OpenAiContentProvider)->pollBatch('batch_123'));
     }
 
     public function test_fetch_results_keys_generation_results_by_custom_id(): void
@@ -149,7 +150,7 @@ class OpenAiContentProviderTest extends TestCase
             '{"custom_id":"page_megasena_2500","response":{"body":{"choices":[{"message":{"content":"{\\"title\\":\\"Resultado 2500\\",\\"slug\\":\\"mega-sena/resultado/2500\\",\\"meta_description\\":\\"Resumo\\",\\"enrichment_blocks\\":[]}"}}]}}}',
         ]);
 
-        $results = (new OpenAiContentProvider())->fetchResults('batch_123');
+        $results = (new OpenAiContentProvider)->fetchResults('batch_123');
         $results = is_array($results) ? $results : iterator_to_array($results);
 
         $this->assertArrayHasKey('page_megasena_2500', $results);
@@ -161,6 +162,136 @@ class OpenAiContentProviderTest extends TestCase
             'enrichment_blocks' => [],
         ], $results['page_megasena_2500']->payload);
         $this->assertNull($results['page_megasena_2500']->failureReason);
+    }
+
+    public function test_generate_one_returns_a_valid_result_with_json_schema_enforced(): void
+    {
+        $fake = OpenAI::fake([
+            CreateResponse::fake([
+                'id' => 'chatcmpl-123',
+                'object' => 'chat.completion',
+                'created' => 1_700_000_010,
+                'model' => 'gpt-4o-mini',
+                'system_fingerprint' => null,
+                'choices' => [
+                    [
+                        'index' => 0,
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => '{"title":"Resultado 2500","slug":"mega-sena/resultado/2500","meta_description":"Resumo","enrichment_blocks":[]}',
+                            'function_call' => null,
+                            'tool_calls' => [],
+                        ],
+                        'logprobs' => null,
+                        'finish_reason' => 'stop',
+                    ],
+                ],
+                'usage' => [
+                    'prompt_tokens' => 10,
+                    'completion_tokens' => 12,
+                    'total_tokens' => 22,
+                ],
+            ]),
+        ]);
+
+        $result = (new OpenAiContentProvider)->generateOne($this->request());
+
+        $this->assertTrue($result->valid);
+        $this->assertSame('page_megasena_2500', $result->customId);
+        $this->assertSame([
+            'title' => 'Resultado 2500',
+            'slug' => 'mega-sena/resultado/2500',
+            'meta_description' => 'Resumo',
+            'enrichment_blocks' => [],
+        ], $result->payload);
+        $this->assertNull($result->failureReason);
+
+        $fake->chat()->assertSent(function (string $method, array $parameters): bool {
+            return $method === 'create'
+                && $parameters['model'] === 'gpt-4o-mini'
+                && $parameters['response_format']['type'] === 'json_schema'
+                && $parameters['response_format']['json_schema']['strict'] === true
+                && $parameters['response_format']['json_schema']['schema'] === ['type' => 'object'];
+        });
+    }
+
+    public function test_generate_one_marks_malformed_json_as_invalid(): void
+    {
+        OpenAI::fake([
+            CreateResponse::fake([
+                'id' => 'chatcmpl-123',
+                'object' => 'chat.completion',
+                'created' => 1_700_000_011,
+                'model' => 'gpt-4o-mini',
+                'system_fingerprint' => null,
+                'choices' => [
+                    [
+                        'index' => 0,
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => 'not-json',
+                            'function_call' => null,
+                            'tool_calls' => [],
+                        ],
+                        'logprobs' => null,
+                        'finish_reason' => 'stop',
+                    ],
+                ],
+                'usage' => [
+                    'prompt_tokens' => 10,
+                    'completion_tokens' => 12,
+                    'total_tokens' => 22,
+                ],
+            ]),
+        ]);
+
+        $result = (new OpenAiContentProvider)->generateOne($this->request());
+
+        $this->assertFalse($result->valid);
+        $this->assertSame('Malformed JSON response.', $result->failureReason);
+        $this->assertNull($result->payload);
+    }
+
+    public function test_generate_one_marks_semantically_invalid_payload_as_invalid(): void
+    {
+        OpenAI::fake([
+            CreateResponse::fake([
+                'id' => 'chatcmpl-123',
+                'object' => 'chat.completion',
+                'created' => 1_700_000_012,
+                'model' => 'gpt-4o-mini',
+                'system_fingerprint' => null,
+                'choices' => [
+                    [
+                        'index' => 0,
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => '{"title":"","slug":"mega-sena/resultado/2500","meta_description":"Resumo","enrichment_blocks":[]}',
+                            'function_call' => null,
+                            'tool_calls' => [],
+                        ],
+                        'logprobs' => null,
+                        'finish_reason' => 'stop',
+                    ],
+                ],
+                'usage' => [
+                    'prompt_tokens' => 10,
+                    'completion_tokens' => 12,
+                    'total_tokens' => 22,
+                ],
+            ]),
+        ]);
+
+        $result = (new OpenAiContentProvider)->generateOne($this->request());
+
+        $this->assertFalse($result->valid);
+        $this->assertSame('Missing required title.', $result->failureReason);
+        $this->assertSame([
+            'title' => '',
+            'slug' => 'mega-sena/resultado/2500',
+            'meta_description' => 'Resumo',
+            'enrichment_blocks' => [],
+        ], $result->payload);
     }
 
     private function request(): GenerationRequest

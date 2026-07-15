@@ -101,7 +101,14 @@ class OpenAiContentProvider implements BatchContentProvider
 
     public function generateOne(GenerationRequest $request): GenerationResult
     {
-        throw new \BadMethodCallException('Synchronous generation is implemented in T11.');
+        $response = OpenAI::chat()->create($this->buildChatPayload($request));
+        $content = data_get($response, 'choices.0.message.content');
+
+        if (! is_string($content) || trim($content) === '') {
+            return GenerationResult::invalid($request->customId, null, 'Missing chat completion content.');
+        }
+
+        return $this->resultFromContent($request->customId, $content);
     }
 
     private function batchFilePath(): string
