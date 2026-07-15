@@ -45,6 +45,16 @@ class Draw extends Model
         };
     }
 
+    public function getDrawnNumbersAttribute(): array
+    {
+        $numbers = $this->raw_data['listaDezenas'] ?? [];
+
+        return array_map(
+            fn (mixed $number): string => str_pad((string) (int) $number, 2, '0', STR_PAD_LEFT),
+            $numbers,
+        );
+    }
+
     public function getIsAccumulatedAttribute(): bool
     {
         return $this->raw_data['acumulado'] ?? false;
@@ -96,5 +106,17 @@ class Draw extends Model
     public function getNextDrawNumberAttribute(): ?int
     {
         return $this->raw_data['numeroConcursoProximo'] ?? null;
+    }
+
+    public function getPrevDrawNumberAttribute(): ?int
+    {
+        return $this->raw_data['numeroConcursoAnterior'] ?? null;
+    }
+
+    public function getNextDrawEstimateAttribute(): ?float
+    {
+        $estimate = $this->raw_data['valorEstimadoProximoConcurso'] ?? null;
+
+        return is_numeric($estimate) ? (float) $estimate : null;
     }
 }
