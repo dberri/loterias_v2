@@ -20,38 +20,35 @@ class IndividualDrawDetailsBlock extends PageBlock
                 Select::make('draw_id')
                     ->label('Select Draw')
                     ->searchable()
-                    ->getSearchResultsUsing(fn (string $search): array => 
-                        Draw::where('draw_number', 'like', "%{$search}%")
-                            ->orWhere('type', 'like', "%{$search}%")
-                            ->limit(50)
-                            ->get()
-                            ->mapWithKeys(fn($draw) => [
-                                $draw->id => "{$draw->type} - Concurso {$draw->draw_number}"
-                            ])
-                            ->toArray()
+                    ->getSearchResultsUsing(fn (string $search): array => Draw::where('draw_number', 'like', "%{$search}%")
+                        ->orWhere('type', 'like', "%{$search}%")
+                        ->limit(50)
+                        ->get()
+                        ->mapWithKeys(fn ($draw) => [
+                            $draw->id => "{$draw->type} - Concurso {$draw->draw_number}",
+                        ])
+                        ->toArray()
                     )
-                    ->getOptionLabelUsing(fn ($value): ?string => 
-                        Draw::find($value)?->let(fn($draw) => 
-                            "{$draw->type} - Concurso {$draw->draw_number}"
-                        )
+                    ->getOptionLabelUsing(fn ($value): ?string => Draw::find($value)?->let(fn ($draw) => "{$draw->type} - Concurso {$draw->draw_number}"
+                    )
                     ),
-                    
+
                 Toggle::make('show_prize_breakdown')
                     ->label('Show Prize Breakdown')
                     ->default(true),
-                    
+
                 Toggle::make('show_winners_by_tier')
                     ->label('Show Winners by Prize Tier')
                     ->default(true),
-                    
+
                 Toggle::make('show_statistics')
                     ->label('Show Number Statistics')
                     ->default(true),
-                    
+
                 Toggle::make('show_comparison')
                     ->label('Show Comparison with Previous Draw')
                     ->default(false),
-                    
+
                 TextInput::make('custom_title')
                     ->label('Custom Title (Optional)')
                     ->placeholder('Will use draw info if empty'),
@@ -60,10 +57,10 @@ class IndividualDrawDetailsBlock extends PageBlock
 
     public static function mutateData(array $data): array
     {
-        if (!empty($data['draw_id'])) {
+        if (! empty($data['draw_id'])) {
             $draw = Draw::with(['page'])->find($data['draw_id']);
             $data['draw'] = $draw;
-            
+
             if ($draw && ($data['show_comparison'] ?? false)) {
                 $previousDraw = Draw::where('type', $draw->type)
                     ->where('draw_date', '<', $draw->draw_date)
@@ -71,28 +68,34 @@ class IndividualDrawDetailsBlock extends PageBlock
                     ->first();
                 $data['previous_draw'] = $previousDraw;
             }
-            
-            // if ($draw && ($data['show_statistics'] ?? false)) {
-            //     // Get number frequency statistics for this game
-            //     $allDraws = Draw::where('type', $draw->type)
-            //         ->whereNotNull('numbers')
-            //         ->get();
-                    
-            //     $numberStats = [];
-            //     foreach ($allDraws as $historicalDraw) {
-            //         $numbers = json_decode($historicalDraw->numbers, true);
-            //         if (is_array($numbers)) {
-            //             foreach ($numbers as $number) {
-            //                 $numberStats[$number] = ($numberStats[$number] ?? 0) + 1;
-            //             }
-            //         }
-            //     }
-                
-            //     arsort($numberStats);
-            //     $data['number_frequency'] = $numberStats;
-            // }
+
+            if ($draw) {
+                $rateio = $draw->raw_data['listaRateioPremio'] ?? [];
+                $data['location'] = $draw->location;
+                $data['is_accumulated'] = $draw->is_accumulated;
+                $data['next_draw_estimate'] = $draw->next_draw_estimate;
+                $data['main_prize'] = $draw->main_prize;
+                $data['main_prize_winners'] = $draw->main_prize_winners;
+                $data['formatted_main_prize'] = $draw->formatted_main_prize;
+                $data['prize_tiers'] = collect($rateio)
+                    ->map(fn (array $tier): array => [
+                        'faixa' => $tier['faixa'] ?? null,
+                        'numeroDeGanhadores' => $tier['numeroDeGanhadores'] ?? null,
+                        'valorPremio' => $tier['valorPremio'] ?? null,
+                    ])
+                    ->values()
+                    ->all();
+                $data['winner_cities'] = collect($draw->raw_data['listaMunicipioUFGanhadores'] ?? [])
+                    ->map(fn (array $city): array => [
+                        'municipio' => $city['municipio'] ?? null,
+                        'uf' => $city['uf'] ?? null,
+                        'ganhadores' => $city['ganhadores'] ?? null,
+                    ])
+                    ->values()
+                    ->all();
+            }
         }
-        
+
         return $data;
     }
 }
