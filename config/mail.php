@@ -113,4 +113,20 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Operator Alerts
+    |--------------------------------------------------------------------------
+    |
+    | Destination and de-duplication window for App\Services\AlertNotifier.
+    | The window is deliberately long: a failure that repeats nightly should
+    | send one email, not one per night.
+    |
+    */
+
+    'alerts' => [
+        'recipient' => env('ALERT_MAIL_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+        'suppression_minutes' => env('ALERT_SUPPRESSION_MINUTES', 10080),
+    ],
+
 ];
