@@ -149,13 +149,23 @@ class DrawPageRenderingTest extends TestCase
 
         $raw = $matches[1] ?? [];
 
+        $page = \App\Models\Page::query()->first();
+
         return sprintf(
             "ld+json script tags found: %d; parsed nodes: %d; 'ld+json' substring present: %s; "
-            ."stack rendered: %s.\nRaw script bodies: %s",
+            ."stack rendered: %s.\n"
+            .'page rows: %d; draw rows: %d; page->draw_id: %s; page->draw resolves: %s; '
+            ."draw_date: %s; game_name: %s.\nRaw script bodies: %s",
             count($raw),
             count($this->jsonLdNodes($html)),
             str_contains($html, 'ld+json') ? 'yes' : 'NO',
             str_contains($html, '</head>') ? 'head closed' : 'NO HEAD',
+            \App\Models\Page::query()->count(),
+            Draw::query()->count(),
+            var_export($page?->draw_id, true),
+            $page?->draw === null ? 'NULL <-- article json-ld is skipped when this is null' : 'yes',
+            var_export($page?->draw?->draw_date?->toAtomString(), true),
+            var_export($page?->draw?->game_name, true),
             json_encode(array_map(fn (string $b): string => mb_substr($b, 0, 300), $raw)),
         );
     }
