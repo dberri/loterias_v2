@@ -359,11 +359,11 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `composer show` reports `laravel/framework` ^13.x with `filament/filament` ^5.x and `z3d0x/filament-fabricator` ^4.1.x unchanged
-- [ ] `phpunit/phpunit` at ^11.5.50+; `phpunit.xml` needs no schema change (staying on 11.x is deliberate — see spec Out of Scope)
-- [ ] Domain commands behave as their tests assert — `app:scrape-draw`, `app:create-content`, `app:create-pages`
-- [ ] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
-- [ ] Test count: 38 files, full suite green
+- [x] `composer show` reports `laravel/framework` ^13.x with `filament/filament` ^5.x and `z3d0x/filament-fabricator` ^4.1.x unchanged — pinned to `^13.12` specifically (resolved to v13.20.0), not `^13.0`, to clear 3 Composer-blocked security advisories affecting all earlier v13 releases; see commit `2f3f2ee` body
+- [x] `phpunit/phpunit` at ^11.5.50+; `phpunit.xml` needs no schema change (staying on 11.x is deliberate — see spec Out of Scope) — resolved to 11.5.56
+- [x] Domain commands behave as their tests assert — `app:scrape-draw`, `app:create-content`, `app:create-pages` — verified via `ScraperTest`, `CreateContentTest`, `CreatePagesTest`, all green
+- [x] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
+- [x] Test count: 38 files, full suite green — actual verified count is 36 files, 198 tests passed (unchanged from baseline; see T1 deviation note). **SPEC_DEVIATION**: resolving `laravel/framework ^13` forced transitive bumps of `openai-php/laravel` (0.15.0→0.20.0), `laravel/boost`, `laravel/tinker`, and `nunomaduro/collision` — `openai-php/laravel`'s bump is explicitly named in spec.md's Non-Goals table as out of scope/separate, but its 0.15.0 release hard-caps at `laravel/framework ^11.29|^12.12` with no 0.15.x release supporting v13; there is no way to resolve this task's core deliverable without it. See commit `2f3f2ee` body for full reasoning and risk assessment.
 
 **Tests**: unit + feature · **Gate**: build
 **Commit**: `chore(deps)!: upgrade to laravel 13`
