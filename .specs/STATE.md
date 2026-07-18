@@ -118,9 +118,18 @@
 - **Date**: 2026-07-18
 - **Status**: active
 
+### AD-015
+- **Decision**: `openai-php/laravel` moves from `0.15.0` to `^0.20.0` as part of the Laravel 13 bump (T12), not as a separately-scheduled bump.
+- **Reason**: `framework-upgrade-laravel-13-filament-5`'s spec.md Non-Goals table listed this bump as "Independent of this upgrade; unconstrained by Laravel 13. Separate bump" — that reasoning was disproven during T12. `openai-php/laravel` 0.15.0 requires `laravel/framework ^11.29|^12.12` with no 0.15.x release supporting Laravel 13; `^0.20.0` is the first line to declare `^13.0` support (confirmed via installed package metadata: `laravel/framework ^11.29|^12.12|^13.0`). There is no way to land `laravel/framework ^13` without it — it was never optional.
+- **Trade-off**: Pulls in an OpenAI SDK bump (`openai-php/client` tracks in lockstep) as a forced side effect of a framework bump, rather than on its own review cycle. Also forced dev-only bumps of `laravel/boost`, `laravel/tinker`, `nunomaduro/collision` (zero app usage, Composer-resolved).
+- **Lesson**: A spec's "unconstrained by X" claim about a transitive dependency is a testable assertion, not a given — check the dependency's own constraint declaration before writing it into a Non-Goals/Out-of-Scope table, the same way AD-013 learned to check whether a configuration primitive could express a stated rule.
+- **Scope**: `framework-upgrade-laravel-13-filament-5` (T12); binding on any future feature that bumps `laravel/framework` while `openai-php/laravel` stays below `^0.20.0`.
+- **Date**: 2026-07-18
+- **Status**: active
+
 ## Handoff
 
-- **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`.
+- **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`, `framework-upgrade-laravel-13-filament-5` (all 3 phases code-complete, Verifier pending).
 - **Current branch**: `feat/infrastructure-postgres-backups` → **PR #1** (https://github.com/dberri/loterias_v2/pull/1). **CI green: 178 passed.** Not merged.
 
 ### `infrastructure-cloud-postgres-backups` — code scope COMPLETE, operator scope OPEN
