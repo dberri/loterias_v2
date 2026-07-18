@@ -288,10 +288,10 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] All `Livewire::test()` assertions exercise the real components under Livewire 4
-- [ ] Test bodies changed ONLY for framework-mandated API renames — no assertion weakened, no case dropped
-- [ ] Gate passes: `php artisan test`
-- [ ] Test count: 38 files, full suite green
+- [x] All `Livewire::test()` assertions exercise the real components under Livewire 4 — verified all 4 call sites in `PageResourceTest.php` (lines 40, 46, 66, 90) mount real Filament/Livewire components and pass
+- [x] Test bodies changed ONLY for framework-mandated API renames — no assertion weakened, no case dropped — actual result: zero renames were needed; the file is byte-for-byte unchanged from Phase 1 (see commit body)
+- [x] Gate passes: `php artisan test`
+- [x] Test count: 38 files, full suite green — actual verified count is 36 files, 198 tests passed (unchanged from T8; no reduction)
 
 **Tests**: feature · **Gate**: full
 **Commit**: `fix(filament): reconcile livewire 4 changes across the panel`
