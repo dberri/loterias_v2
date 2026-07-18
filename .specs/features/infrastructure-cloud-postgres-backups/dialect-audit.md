@@ -188,6 +188,70 @@ AD-012), not by anything in this audit.
 
 ---
 
+## T8 execution evidence — verified, not reasoned about
+
+Every "verified by T8" claim above was discharged by running against a real
+PostgreSQL 17.10 instance on 2026-07-18. **No migration required a fix**; the
+audit's F1 change (made in T3) was the only alteration, and it was defensive
+rather than corrective.
+
+### 1. `migrate:fresh` on an empty database
+
+The `loterias` database was dropped and recreated, then:
+
+```
+$ php artisan migrate:fresh --force
+   INFO  Running migrations.
+   ... 11 migrations, all DONE, zero dialect errors
+```
+
+### 2. The data-bearing backfill path (the one that actually mattered)
+
+`migrate:fresh` runs the `add_draw_date_to_draws_table` backfill against an
+**empty** `draws` table, so it proves nothing about F1 or F2. To exercise the real
+path, the last three migrations were rolled back, six real Caixa payloads
+(concursos 1, 500, 2194, 2482, 2500, 2608 — four of them NUL-bearing) were
+inserted, and the migration was re-run forward:
+
+```
+ draw_number | draw_date
+-------------+------------
+           1 | 1996-03-11
+         500 | 2003-09-27
+        2194 | 2019-10-02
+        2482 | 2022-05-18
+        2500 | 2022-07-13
+        2608 | 2023-07-05
+```
+
+- **F1 resolved.** The backfill decoded `raw_data` correctly on Postgres and
+  populated every row — `dataApuracao` in `d/m/Y` parsed to the right dates. The
+  driver does return the `json` column as a string, as predicted; the defensive
+  `is_array()` guard costs nothing and removes the dependency on that behaviour.
+- **F2 resolved.** `->change()` to NOT NULL succeeded **with rows present**:
+
+```
+ column_name | data_type | is_nullable
+-------------+-----------+-------------
+ draw_date   | date      | NO
+ raw_data    | json      | NO
+```
+
+- **F3 resolved.** The framework's `unsignedInteger`/`unsignedTinyInteger` columns
+  in the jobs table created without error.
+- **Bonus:** the `down()` methods of the three rolled-back migrations also executed
+  cleanly on Postgres, so the migration set is reversible on this engine.
+
+`raw_data` is confirmed to be a genuine Postgres `json` column — which is exactly
+why `NulSafeJson` (T2) is load-bearing rather than precautionary.
+
+### 3. Full suite
+
+`php artisan test` against Postgres: **98 tests, 0 failures**, versus a
+pre-existing baseline of 77. No test was deleted or skipped.
+
+---
+
 ## PostgreSQL version parity
 
 | Environment | Postgres major version | Source |
