@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Backup Disk
+    |--------------------------------------------------------------------------
+    |
+    | The disk the nightly corpus export writes its artifacts to. It is kept
+    | separate from the default disk so backups can live in a different bucket
+    | — and therefore a different failure domain — than anything else the app
+    | stores.
+    |
+    */
+
+    'backup_disk' => env('BACKUP_DISK', 'backups'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -55,6 +69,23 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
+        ],
+
+        'backups' => [
+            'driver' => 's3',
+            'key' => env('BACKUP_AWS_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('BACKUP_AWS_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('BACKUP_AWS_DEFAULT_REGION', env('AWS_DEFAULT_REGION')),
+            'bucket' => env('BACKUP_AWS_BUCKET'),
+            'endpoint' => env('BACKUP_AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('BACKUP_AWS_USE_PATH_STYLE_ENDPOINT', false),
+
+            /*
+             * Deliberately true, unlike every other disk here. A backup that
+             * fails to write must raise, not return false — silently swallowing
+             * a storage error is exactly how a backup becomes a rumour.
+             */
+            'throw' => true,
         ],
 
     ],
