@@ -8,10 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * JSON cast that strips NUL bytes on write.
  *
- * PostgreSQL's json/jsonb types reject \0, and 415 of the 2,608 real Caixa
- * Mega-Sena payloads carry one as junk padding inside nomeTimeCoracaoMesSorte.
+ * 415 of the 2,608 real Caixa Mega-Sena payloads carry a NUL as junk padding
+ * inside nomeTimeCoracaoMesSorte.
+ *
+ * Note the failure this prevents is silent, not loud. raw_data is a `json`
+ * column, and PostgreSQL's `json` type ACCEPTS \0 on insert -- only `jsonb`
+ * rejects it. Without this cast those rows would insert cleanly and then be
+ * permanently unreadable: any ->> extraction raises SQLSTATE 22P05, and a
+ * later ALTER TYPE ... jsonb is blocked. Nothing during a cutover would
+ * signal the problem.
+ *
  * Stripping happens at the storage boundary only (AD-012); the read path is
- * identical to Laravel's built-in 'array' cast.
+ * identical to Laravel's built-in 'array' cast. The narrow exception to
+ * AD-001's byte-faithfulness rule is licensed ONLY by the accessor-parity
+ * tests -- if those are removed, this cast is no longer justified.
  *
  * @implements CastsAttributes<array<mixed>|null, array<mixed>|null>
  */

@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Commands;
 
+use App\DTOs\GenerationResult;
 use App\Enums\GamesEnum;
+use App\Enums\PageStatus;
 use App\Jobs\ExportCorpus;
 use App\Models\Draw;
 use App\Models\Page;
+use App\Services\PageAssembler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -174,6 +177,63 @@ class RestoreCorpusTest extends TestCase
         $this->assertTrue($page->exists);
         $this->assertSame(2, Draw::count());
         $this->assertSame(2, Page::count());
+    }
+
+    /**
+     * INFRA-15 — spec AC P3.4 requires more than row reconstruction: "a sampled
+     * set of previously-Published draw pages SHALL render correctly afterward."
+     *
+     * Row counts and column equality cannot show that, because a page can be
+     * restored intact and still fail to serve if the draw relation, the status,
+     * or the slug does not survive the round trip. This asserts the restored
+     * corpus is actually servable, which is the only property the operator cares
+     * about at 3am.
+     */
+    public function test_a_previously_published_page_still_renders_after_restore(): void
+    {
+        $draw = $this->seedDraw(2608);
+        $page = (new PageAssembler)->assemble($draw, GenerationResult::valid('page_megasena_2608', [
+            'title' => 'Resultado Mega-Sena concurso 2608',
+            'slug' => 'megasena/resultado/2608',
+            'meta_description' => 'Resumo do concurso 2608',
+            'enrichment_blocks' => [],
+        ]));
+        $page->update(['status' => PageStatus::Published->value]);
+
+        $this->get('/megasena/resultado/2608')->assertOk();
+
+        $this->exportThenEmptyTheDatabase();
+        $this->get('/megasena/resultado/2608')->assertNotFound();
+
+        $this->artisan('app:restore-corpus', ['directory' => $this->directory()])
+            ->assertExitCode(0);
+
+        $this->get('/megasena/resultado/2608')->assertOk();
+    }
+
+    /**
+     * The publish gate must survive the restore too — a restore that silently
+     * promoted every page to Published would pass a naive "it renders" check
+     * while exposing unreviewed AI output (AD-006).
+     */
+    public function test_restore_preserves_the_publish_gate_for_unpublished_pages(): void
+    {
+        $draw = $this->seedDraw(2608);
+        $page = (new PageAssembler)->assemble($draw, GenerationResult::valid('page_megasena_2608', [
+            'title' => 'Resultado Mega-Sena concurso 2608',
+            'slug' => 'megasena/resultado/2608',
+            'meta_description' => 'Resumo do concurso 2608',
+            'enrichment_blocks' => [],
+        ]));
+        $page->update(['status' => PageStatus::Generated->value]);
+
+        $this->exportThenEmptyTheDatabase();
+
+        $this->artisan('app:restore-corpus', ['directory' => $this->directory()])
+            ->assertExitCode(0);
+
+        $this->assertSame(PageStatus::Generated, Page::query()->firstOrFail()->status);
+        $this->get('/megasena/resultado/2608')->assertNotFound();
     }
 
     private function directory(): string
