@@ -382,12 +382,12 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] Build context is `./vendor/laravel/sail/runtimes/8.5` and image is `sail-8.5/app`
-- [ ] `composer update` resolves inside the 8.5 container with no platform conflict
-- [ ] **Fallback honored**: if any transitive dependency blocks on 8.5, drop to the 8.4 runtime and record the blocking package in `context.md` D3 — do not force the resolution
-- [ ] Full suite passes *inside the container*, not just on the host CLI
-- [ ] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
-- [ ] Test count: 38 files, full suite green
+- [x] Build context is `./vendor/laravel/sail/runtimes/8.5` and image is `sail-8.5/app`
+- [x] `composer update` resolves inside the 8.5 container with no platform conflict — verified via both `composer update --with-all-dependencies` (unscoped, discarded — see commit body) and `composer install` against the committed T12 lock file, both clean on PHP 8.5.8
+- [x] **Fallback honored**: if any transitive dependency blocks on 8.5, drop to the 8.4 runtime and record the blocking package in `context.md` D3 — do not force the resolution — not triggered; PHP 8.5 resolved with zero platform conflicts, so D3 is unchanged
+- [x] Full suite passes *inside the container*, not just on the host CLI — `sail artisan test`: 198 passed, 0 failed; see commit `7d5e460` body for the DB_HOST/DB_PORT network-context note
+- [x] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
+- [x] Test count: 38 files, full suite green — actual verified count is 36 files, 198 tests passed (unchanged from T12)
 
 **Tests**: none (infra config) · **Gate**: build
 **Commit**: `chore(docker): move the sail runtime to php 8.5`
