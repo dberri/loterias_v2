@@ -1,11 +1,11 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -22,13 +22,17 @@ return new class extends Migration
         $draws = DB::table('draws')->whereNotNull('raw_data')->get();
 
         foreach ($draws as $draw) {
-            $rawData = json_decode($draw->raw_data, true);
-            
-            if (isset($rawData['dataApuracao']) && !empty($rawData['dataApuracao'])) {
+            // Drivers differ in whether a JSON column comes back decoded:
+            // pgsql and mysql both return a string, but do not rely on it.
+            $rawData = is_array($draw->raw_data)
+                ? $draw->raw_data
+                : json_decode($draw->raw_data, true);
+
+            if (isset($rawData['dataApuracao']) && ! empty($rawData['dataApuracao'])) {
                 try {
                     // Parse the date in d/m/Y format (e.g., "25/01/2025")
                     $drawDate = Carbon::createFromFormat('d/m/Y', $rawData['dataApuracao']);
-                    
+
                     DB::table('draws')
                         ->where('id', $draw->id)
                         ->update(['draw_date' => $drawDate->format('Y-m-d')]);
