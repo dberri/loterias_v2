@@ -11,7 +11,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 **Spec**: `.specs/features/framework-upgrade-laravel-13-filament-5/spec.md`
 **Decisions**: `.specs/features/framework-upgrade-laravel-13-filament-5/context.md`
 **Design**: none — skipped deliberately. This upgrade introduces no architecture; the target shape is fixed by upstream releases, and the single design-shaped decision (`PageResource` re-derivation) is locked in `context.md` D2.
-**Status**: Draft
+**Status**: Done — all 15 tasks complete, Verifier PASS (see `validation.md`)
 
 ---
 
