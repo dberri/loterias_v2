@@ -3,9 +3,11 @@
 namespace App\Jobs;
 
 use App\Models\Draw;
+use App\Models\Page;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\LazyCollection;
 
@@ -36,6 +38,28 @@ class ExportCorpus implements ShouldQueue
             $directory.'/draws.ndjson',
             Draw::query()->orderBy('id')->lazy(self::CHUNK),
         );
+
+        /*
+         * `pages` is created by seo-draw-page-generation, a soft dependency.
+         * When it has not shipped yet the export covers draws alone and still
+         * succeeds — this feature has to be deployable on its own (INFRA-18).
+         *
+         * When the table exists but holds no rows the artifact is still
+         * written, empty (INFRA-19). A zero-row file and a missing file mean
+         * very different things during a restore, and collapsing them would
+         * make an empty backup indistinguishable from a backup that never ran.
+         */
+        if ($this->pagesTableExists()) {
+            $this->writeNdjson(
+                $directory.'/pages.ndjson',
+                Page::query()->orderBy('id')->lazy(self::CHUNK),
+            );
+        }
+    }
+
+    private function pagesTableExists(): bool
+    {
+        return Schema::hasTable((new Page)->getTable());
     }
 
     /**
