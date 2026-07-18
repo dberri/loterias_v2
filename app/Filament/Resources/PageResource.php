@@ -3,20 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PageStatus;
-use App\Filament\Resources\PageResource\Pages;
-use Filament\Forms\Components\Group;
+use App\Filament\Resources\PageResource\Pages\EditPage;
+use Closure;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ViewAction;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -26,11 +27,13 @@ use Illuminate\Validation\Rules\Unique;
 use Z3d0X\FilamentFabricator\Facades\FilamentFabricator;
 use Z3d0X\FilamentFabricator\Forms\Components\PageBuilder;
 use Z3d0X\FilamentFabricator\Models\Contracts\Page as PageContract;
+use Z3d0X\FilamentFabricator\Resources\PageResource\Pages\CreatePage;
+use Z3d0X\FilamentFabricator\Resources\PageResource\Pages\ListPages;
 use Z3d0X\FilamentFabricator\View\ResourceSchemaSlot;
 
 class PageResource extends Resource
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $recordTitleAttribute = 'title';
 
@@ -39,9 +42,9 @@ class PageResource extends Resource
         return FilamentFabricator::getPageModel();
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->columns(3)
             ->schema([
                 Group::make()
@@ -86,7 +89,7 @@ class PageResource extends Resource
                                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('parent_id', $get('parent_id')))
                                     ->afterStateUpdated(fn (Set $set) => $set('is_slug_changed_manually', true))
                                     ->rule(function ($state) {
-                                        return function (string $attribute, $value, \Closure $fail) use ($state) {
+                                        return function (string $attribute, $value, Closure $fail) use ($state) {
                                             if ($state !== '/' && (Str::startsWith($value, '/') || Str::endsWith($value, '/'))) {
                                                 $fail('The slug cannot start or end with a slash.');
                                             }
@@ -191,7 +194,7 @@ class PageResource extends Resource
                     ->label('Layout')
                     ->options(FilamentFabricator::getLayouts()),
             ])
-            ->actions([
+            ->recordActions([
                 ViewAction::make()
                     ->visible(config('filament-fabricator.enable-view-page')),
                 EditAction::make(),
@@ -203,15 +206,15 @@ class PageResource extends Resource
                     ->color('success')
                     ->visible(config('filament-fabricator.routing.enabled')),
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => \Z3d0X\FilamentFabricator\Resources\PageResource\Pages\ListPages::route('/'),
-            'create' => \Z3d0X\FilamentFabricator\Resources\PageResource\Pages\CreatePage::route('/create'),
-            'edit' => Pages\EditPage::route('/{record}/edit'),
+            'index' => ListPages::route('/'),
+            'create' => CreatePage::route('/create'),
+            'edit' => EditPage::route('/{record}/edit'),
         ];
     }
 }
