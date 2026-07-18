@@ -73,12 +73,22 @@ return [
 
         'backups' => [
             'driver' => 's3',
-            'key' => env('BACKUP_AWS_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
-            'secret' => env('BACKUP_AWS_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
-            'region' => env('BACKUP_AWS_DEFAULT_REGION', env('AWS_DEFAULT_REGION')),
-            'bucket' => env('BACKUP_AWS_BUCKET'),
-            'endpoint' => env('BACKUP_AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('BACKUP_AWS_USE_PATH_STYLE_ENDPOINT', false),
+            /*
+             * `?:` rather than env()'s default argument, for the same reason as
+             * mail.alerts.recipient: a key that is PRESENT but EMPTY returns an
+             * empty string, not null, so the default never fires. Shipping
+             * `BACKUP_AWS_ACCESS_KEY_ID=` in an .env would otherwise silently
+             * disable the documented fallback to the AWS_* credentials and
+             * authenticate with an empty key.
+             */
+            'key' => env('BACKUP_AWS_ACCESS_KEY_ID') ?: env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('BACKUP_AWS_SECRET_ACCESS_KEY') ?: env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('BACKUP_AWS_DEFAULT_REGION') ?: env('AWS_DEFAULT_REGION'),
+            'bucket' => env('BACKUP_AWS_BUCKET') ?: null,
+
+            // An empty string is not a valid endpoint; null means "use the AWS default".
+            'endpoint' => env('BACKUP_AWS_ENDPOINT') ?: null,
+            'use_path_style_endpoint' => (bool) env('BACKUP_AWS_USE_PATH_STYLE_ENDPOINT', false),
 
             /*
              * Deliberately true, unlike every other disk here. A backup that
