@@ -8,8 +8,8 @@ A Laravel app that scrapes Brazilian lottery results (Mega-Sena, Lotofácil, Qui
 
 ## Tech Stack
 
-- Laravel 12, PHP 8.2+ (Sail image uses 8.3)
-- Filament 3 (`/admin` panel) + `z3d0x/filament-fabricator` (CMS-style page builder)
+- Laravel 13, PHP 8.3+ (Sail image uses 8.5)
+- Filament 5 (`/admin` panel) + `z3d0x/filament-fabricator` v4 (CMS-style page builder)
 - `openai-php/laravel` for OpenAI integration
 - SQLite by default locally; Sail's docker-compose provisions MySQL for the container environment
 - Vite + Tailwind CSS v4
