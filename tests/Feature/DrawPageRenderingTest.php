@@ -90,10 +90,11 @@ class DrawPageRenderingTest extends TestCase
             ],
         ]));
 
-        $nodes = $this->jsonLdNodes($this->get('/megasena/resultado/2608')->assertOk()->getContent());
+        $html = $this->get('/megasena/resultado/2608')->assertOk()->getContent();
+        $nodes = $this->jsonLdNodes($html);
 
-        $this->assertContains('Article', array_column($nodes, '@type'));
-        $this->assertContains('FAQPage', array_column($nodes, '@type'));
+        $this->assertContains('Article', array_column($nodes, '@type'), $this->jsonLdDiagnostic($html));
+        $this->assertContains('FAQPage', array_column($nodes, '@type'), $this->jsonLdDiagnostic($html));
     }
 
     public function test_draw_page_layout_omits_faq_json_ld_when_no_faq_block_exists(): void
@@ -106,9 +107,10 @@ class DrawPageRenderingTest extends TestCase
             'enrichment_blocks' => [],
         ]));
 
-        $nodes = $this->jsonLdNodes($this->get('/megasena/resultado/2608')->assertOk()->getContent());
+        $html = $this->get('/megasena/resultado/2608')->assertOk()->getContent();
+        $nodes = $this->jsonLdNodes($html);
 
-        $this->assertContains('Article', array_column($nodes, '@type'));
+        $this->assertContains('Article', array_column($nodes, '@type'), $this->jsonLdDiagnostic($html));
         $this->assertNotContains('FAQPage', array_column($nodes, '@type'));
     }
 
@@ -132,5 +134,39 @@ class DrawPageRenderingTest extends TestCase
             ->filter(fn (?array $node): bool => is_array($node))
             ->values()
             ->all();
+    }
+
+    /**
+     * A bare "array does not contain 'Article'" says nothing about WHY: a script
+     * tag that was never emitted, one emitted with a body json_encode() refused
+     * to produce, and one whose JSON is malformed all fail identically. This
+     * distinguishes them, so a failure that only reproduces on another machine
+     * is still diagnosable from the log alone.
+     */
+    private function jsonLdDiagnostic(string $html): string
+    {
+        preg_match_all('/<script type="application\\/ld\\+json">\\s*(.*?)\\s*<\\/script>/s', $html, $matches);
+
+        $raw = $matches[1] ?? [];
+
+        $page = \App\Models\Page::query()->first();
+
+        return sprintf(
+            "ld+json script tags found: %d; parsed nodes: %d; 'ld+json' substring present: %s; "
+            ."stack rendered: %s.\n"
+            .'page rows: %d; draw rows: %d; page->draw_id: %s; page->draw resolves: %s; '
+            ."draw_date: %s; game_name: %s.\nRaw script bodies: %s",
+            count($raw),
+            count($this->jsonLdNodes($html)),
+            str_contains($html, 'ld+json') ? 'yes' : 'NO',
+            str_contains($html, '</head>') ? 'head closed' : 'NO HEAD',
+            \App\Models\Page::query()->count(),
+            Draw::query()->count(),
+            var_export($page?->draw_id, true),
+            $page?->draw === null ? 'NULL <-- article json-ld is skipped when this is null' : 'yes',
+            var_export($page?->draw?->draw_date?->toAtomString(), true),
+            var_export($page?->draw?->game_name, true),
+            json_encode(array_map(fn (string $b): string => mb_substr($b, 0, 300), $raw)),
+        );
     }
 }

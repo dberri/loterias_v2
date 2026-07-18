@@ -98,7 +98,8 @@ class CheckCompletionBatchTest extends TestCase
 
     private function batchProvider(BatchStatus $status, array $results): BatchContentProvider
     {
-        return new class($status, $results) implements BatchContentProvider {
+        return new class($status, $results) implements BatchContentProvider
+        {
             public function __construct(private readonly BatchStatus $status, private readonly array $results) {}
 
             public function submitBatch(iterable $requests): string

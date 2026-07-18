@@ -5,12 +5,9 @@ namespace App\Filament\Resources;
 use App\Enums\GamesEnum;
 use App\Filament\Resources\DrawResource\Pages;
 use App\Models\Draw;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class DrawResource extends Resource
 {

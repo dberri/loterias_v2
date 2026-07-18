@@ -3,11 +3,9 @@
 namespace App\Filament\Resources\DrawResource\Pages;
 
 use App\Filament\Resources\DrawResource;
-use Filament\Infolists\Components\{
-    RepeatableEntry,
-    Section,
-    TextEntry,
-};
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\NulSafeJson;
 use App\Enums\GamesEnum;
 use App\Enums\PageStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,10 +20,10 @@ class Draw extends Model
         'raw_data',
     ];
 
-    protected function casts()
+    protected function casts(): array
     {
         return [
-            'raw_data' => 'array',
+            'raw_data' => NulSafeJson::class,
             'draw_date' => 'datetime',
             'type' => GamesEnum::class,
         ];

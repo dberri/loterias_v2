@@ -21,7 +21,7 @@ class FaqBlock extends PageBlock
                     ->label('Section Title')
                     ->default('Perguntas Frequentes')
                     ->required(),
-                    
+
                 Select::make('layout_style')
                     ->label('Layout Style')
                     ->options([
@@ -31,7 +31,7 @@ class FaqBlock extends PageBlock
                     ])
                     ->default('accordion')
                     ->required(),
-                    
+
                 Select::make('category')
                     ->label('FAQ Category')
                     ->options([
@@ -44,7 +44,7 @@ class FaqBlock extends PageBlock
                         'technical' => 'Técnico',
                     ])
                     ->default('general'),
-                    
+
                 Repeater::make('faqs')
                     ->label('FAQ Items')
                     ->schema([
@@ -52,7 +52,7 @@ class FaqBlock extends PageBlock
                             ->label('Question')
                             ->required()
                             ->columnSpanFull(),
-                            
+
                         RichEditor::make('answer')
                             ->label('Answer')
                             ->required()
@@ -64,7 +64,7 @@ class FaqBlock extends PageBlock
                                 'bulletList',
                                 'orderedList',
                             ]),
-                            
+
                         Select::make('category')
                             ->label('Question Category')
                             ->options([
@@ -93,7 +93,7 @@ class FaqBlock extends PageBlock
         $data['faqs'] = $data['faqs'] ?? [];
 
         // Filter FAQs by category if specified
-        if (!empty($data['category']) && $data['category'] !== 'general') {
+        if (! empty($data['category']) && $data['category'] !== 'general') {
             $data['faqs'] = collect($data['faqs'] ?? [])
                 ->filter(fn ($faq) => ($faq['category'] ?? 'general') === $data['category'])
                 ->values()

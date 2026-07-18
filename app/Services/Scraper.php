@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\GamesEnum;
 use App\Models\Draw;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -41,11 +42,41 @@ class Scraper
             return;
         }
 
+        $payload = $response->json();
+
         $draw = new Draw;
         $draw->type = $this->enum->value;
         $draw->draw_number = $number;
-        $draw->raw_data = $response->json();
+        $draw->draw_date = $this->drawDateFrom($payload);
+        $draw->raw_data = $payload;
         $draw->save();
+    }
+
+    /**
+     * Caixa returns the draw date as d/m/Y in dataApuracao. The draws.draw_date
+     * column is NOT NULL, so a payload without a parseable date must fail loudly
+     * rather than persist a draw that every date-ordered query would then miss.
+     *
+     * @param  array<string, mixed>|null  $payload
+     */
+    private function drawDateFrom(?array $payload): ?string
+    {
+        $date = $payload['dataApuracao'] ?? null;
+
+        if (! is_string($date) || $date === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('d/m/Y', $date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            Log::warning('Failed to parse draw date while scraping', [
+                'game' => $this->enum->value,
+                'dataApuracao' => $date,
+            ]);
+
+            return null;
+        }
     }
 
     private function getHeaders(): array

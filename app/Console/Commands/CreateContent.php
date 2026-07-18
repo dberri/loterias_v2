@@ -6,8 +6,8 @@ use App\DTOs\GenerationRequest;
 use App\Enums\GamesEnum;
 use App\Models\Draw;
 use App\Services\Content\DrawPagePrompt;
-use App\Services\PageAssembler;
 use App\Services\ContentProviderManager;
+use App\Services\PageAssembler;
 use Illuminate\Console\Command;
 
 class CreateContent extends Command

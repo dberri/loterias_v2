@@ -91,7 +91,8 @@ class CreateContentTest extends TestCase
 
     private function syncProvider(GenerationResult $result): BatchContentProvider
     {
-        return new class($result) implements BatchContentProvider {
+        return new class($result) implements BatchContentProvider
+        {
             public function __construct(private readonly GenerationResult $result) {}
 
             public function submitBatch(iterable $requests): string

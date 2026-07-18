@@ -40,7 +40,24 @@
     ] : null;
 @endphp
 
-@push('head')
+{{--
+    Emitted inline rather than pushed to the base layout's `head` stack.
+
+    @push('head') here silently produced NOTHING on CI -- zero script tags, the
+    substring absent from the response entirely -- while passing on PHP 8.3, 8.4
+    and 8.5 locally, with a cleared view cache and with CI's exact environment
+    overlaid. The data was verified correct on CI at the point of render
+    ($page->draw resolves, draw_date and game_name both populated), so the push
+    content was being lost across the component boundary rather than never
+    generated.
+
+    Structured data is valid anywhere in the document -- Google reads JSON-LD in
+    the body -- so the stack bought nothing here and cost the entire SEO payload
+    on any machine where it misbehaves. Failing invisibly is the worst property
+    this markup could have: the page still returns 200 and looks correct, while
+    the structured data it exists to emit is simply absent.
+--}}
+<x-filament-fabricator::layouts.base :title="$page->title">
     @if($articleJsonLd)
         <script type="application/ld+json">
             {!! json_encode($articleJsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
@@ -52,8 +69,6 @@
             {!! json_encode($faqJsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
         </script>
     @endif
-@endpush
 
-<x-filament-fabricator::layouts.base :title="$page->title">
     <x-filament-fabricator::page-blocks :blocks="$page->blocks" />
 </x-filament-fabricator::layouts.base>
