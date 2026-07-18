@@ -12,6 +12,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -29,6 +30,7 @@ use Z3d0X\FilamentFabricator\Forms\Components\PageBuilder;
 use Z3d0X\FilamentFabricator\Models\Contracts\Page as PageContract;
 use Z3d0X\FilamentFabricator\Resources\PageResource\Pages\CreatePage;
 use Z3d0X\FilamentFabricator\Resources\PageResource\Pages\ListPages;
+use Z3d0X\FilamentFabricator\Resources\PageResource\Pages\ViewPage;
 use Z3d0X\FilamentFabricator\View\ResourceSchemaSlot;
 
 class PageResource extends Resource
@@ -46,13 +48,13 @@ class PageResource extends Resource
     {
         return $schema
             ->columns(3)
-            ->schema([
+            ->components([
                 Group::make()
                     ->schema([
                         Group::make()->schema(FilamentFabricator::getSchemaSlot(ResourceSchemaSlot::BLOCKS_BEFORE)),
 
                         PageBuilder::make('blocks')
-                            ->label('Blocks'),
+                            ->label(__('filament-fabricator::page-resource.labels.blocks')),
 
                         Group::make()->schema(FilamentFabricator::getSchemaSlot(ResourceSchemaSlot::BLOCKS_AFTER)),
                     ])
@@ -63,16 +65,16 @@ class PageResource extends Resource
                     ->schema([
                         Group::make()->schema(FilamentFabricator::getSchemaSlot(ResourceSchemaSlot::SIDEBAR_BEFORE)),
 
-                        Section::make('Page Settings')
+                        Section::make()
                             ->schema([
-                                Placeholder::make('page_url')
-                                    ->label('URL')
+                                TextEntry::make('page_url')
+                                    ->label(__('filament-fabricator::page-resource.labels.url'))
                                     ->visible(fn (?PageContract $record) => config('filament-fabricator.routing.enabled') && filled($record))
-                                    ->content(fn (?PageContract $record) => FilamentFabricator::getPageUrlFromId($record?->id)),
+                                    ->state(fn (?PageContract $record) => FilamentFabricator::getPageUrlFromId($record?->id)),
 
                                 TextInput::make('title')
-                                    ->label('Title')
-                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state, ?PageContract $record): void {
+                                    ->label(__('filament-fabricator::page-resource.labels.title'))
+                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state, ?PageContract $record) {
                                         if (! $get('is_slug_changed_manually') && filled($state) && blank($record)) {
                                             $set('slug', Str::slug($state, language: config('app.locale', 'en')));
                                         }
@@ -85,38 +87,47 @@ class PageResource extends Resource
                                     ->dehydrated(false),
 
                                 TextInput::make('slug')
-                                    ->label('Slug')
+                                    ->label(__('filament-fabricator::page-resource.labels.slug'))
                                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('parent_id', $get('parent_id')))
-                                    ->afterStateUpdated(fn (Set $set) => $set('is_slug_changed_manually', true))
+                                    ->afterStateUpdated(function (Set $set) {
+                                        $set('is_slug_changed_manually', true);
+                                    })
                                     ->rule(function ($state) {
                                         return function (string $attribute, $value, Closure $fail) use ($state) {
                                             if ($state !== '/' && (Str::startsWith($value, '/') || Str::endsWith($value, '/'))) {
-                                                $fail('The slug cannot start or end with a slash.');
+                                                $fail(__('filament-fabricator::page-resource.errors.slug_starts_or_ends_with_slash'));
                                             }
                                         };
                                     })
                                     ->required(),
 
                                 Select::make('layout')
-                                    ->label('Layout')
+                                    ->label(__('filament-fabricator::page-resource.labels.layout'))
                                     ->options(FilamentFabricator::getLayouts())
                                     ->default(fn () => FilamentFabricator::getDefaultLayoutName())
                                     ->live()
                                     ->required(),
 
                                 Select::make('parent_id')
-                                    ->label('Parent')
+                                    ->label(__('filament-fabricator::page-resource.labels.parent'))
                                     ->searchable()
                                     ->preload()
                                     ->reactive()
+                                    ->suffixAction(
+                                        fn ($get, $context) => Action::make($context.'-parent')
+                                            ->icon('heroicon-o-arrow-top-right-on-square')
+                                            ->url(fn () => PageResource::getUrl($context, ['record' => $get('parent_id')]))
+                                            ->openUrlInNewTab()
+                                            ->visible(fn () => filled($get('parent_id')))
+                                    )
                                     ->relationship(
                                         'parent',
                                         'title',
-                                        function (Builder $query, ?PageContract $record): void {
+                                        function (Builder $query, ?PageContract $record) {
                                             if (filled($record)) {
                                                 $query->where('id', '!=', $record->id);
                                             }
-                                        },
+                                        }
                                     ),
                             ]),
 
@@ -138,6 +149,7 @@ class PageResource extends Resource
 
                         Group::make()->schema(FilamentFabricator::getSchemaSlot(ResourceSchemaSlot::SIDEBAR_AFTER)),
                     ]),
+
             ]);
     }
 
@@ -146,9 +158,10 @@ class PageResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('title')
-                    ->label('Title')
+                    ->label(__('filament-fabricator::page-resource.labels.title'))
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -171,15 +184,25 @@ class PageResource extends Resource
                     ->label('Generated At')
                     ->dateTime('d/m/Y H:i')
                     ->toggleable(),
+
+                TextColumn::make('url')
+                    ->label(__('filament-fabricator::page-resource.labels.url'))
+                    ->toggleable()
+                    ->getStateUsing(fn (?PageContract $record) => FilamentFabricator::getPageUrlFromId($record->id) ?: null)
+                    ->url(fn (?PageContract $record) => FilamentFabricator::getPageUrlFromId($record->id) ?: null, true)
+                    ->visible(config('filament-fabricator.routing.enabled')),
+
                 TextColumn::make('layout')
-                    ->label('Layout')
+                    ->label(__('filament-fabricator::page-resource.labels.layout'))
                     ->badge()
                     ->toggleable()
                     ->sortable(),
+
                 TextColumn::make('parent.title')
-                    ->label('Parent')
+                    ->label(__('filament-fabricator::page-resource.labels.parent'))
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->formatStateUsing(fn ($state) => $state ?? '-'),
+                    ->formatStateUsing(fn ($state) => $state ?? '-')
+                    ->url(fn (?PageContract $record) => filled($record->parent_id) ? PageResource::getUrl('edit', ['record' => $record->parent_id]) : null),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -191,7 +214,7 @@ class PageResource extends Resource
                         PageStatus::Failed->value => 'Failed',
                     ]),
                 SelectFilter::make('layout')
-                    ->label('Layout')
+                    ->label(__('filament-fabricator::page-resource.labels.layout'))
                     ->options(FilamentFabricator::getLayouts()),
             ])
             ->recordActions([
@@ -199,8 +222,8 @@ class PageResource extends Resource
                     ->visible(config('filament-fabricator.enable-view-page')),
                 EditAction::make(),
                 Action::make('visit')
-                    ->label('Visit')
-                    ->url(fn (?PageContract $record) => FilamentFabricator::getPageUrlFromId($record->id, true) ?: null)
+                    ->label(__('filament-fabricator::page-resource.actions.visit'))
+                    ->url(fn (?PageContract $record) => FilamentFabricator::getPageUrlFromId($record->id) ?: null)
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->openUrlInNewTab()
                     ->color('success')
@@ -209,12 +232,23 @@ class PageResource extends Resource
             ->toolbarActions([]);
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('filament-fabricator::page-resource.labels.page');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('filament-fabricator::page-resource.labels.pages');
+    }
+
     public static function getPages(): array
     {
-        return [
+        return array_filter([
             'index' => ListPages::route('/'),
             'create' => CreatePage::route('/create'),
+            'view' => config('filament-fabricator.enable-view-page') ? ViewPage::route('/{record}') : null,
             'edit' => EditPage::route('/{record}/edit'),
-        ];
+        ]);
     }
 }
