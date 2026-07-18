@@ -265,11 +265,11 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `composer show` reports `filament/filament` ^5.x, `z3d0x/filament-fabricator` ^4.1.x, `livewire/livewire` ^4.x
-- [ ] `composer.json` requires `php: ^8.3` (forced by fabricator 4.1.0); `laravel/framework` still ^12.x
-- [ ] `vendor/bin/filament-v5` run and its diff reviewed
-- [ ] Failing-test inventory captured into the commit body
-- [ ] Gate passes: `composer install --no-interaction && php artisan about && vendor/bin/pint --test`
+- [x] `composer show` reports `filament/filament` ^5.x, `z3d0x/filament-fabricator` ^4.1.x, `livewire/livewire` ^4.x — resolved v5.7.1 / v4.1.0 / v4.3.3
+- [x] `composer.json` requires `php: ^8.3` (forced by fabricator 4.1.0); `laravel/framework` still ^12.x
+- [x] `vendor/bin/filament-v5` run and its diff reviewed — made zero changes to app/Filament/**
+- [x] Failing-test inventory captured into the commit body — actual result: NONE, full suite already green (198 passed, 0 failed) after the bump; see commit `97c054b`
+- [x] Gate passes: `composer install --no-interaction && php artisan about && vendor/bin/pint --test`
 
 **Tests**: none (no behavior authored) · **Gate**: boot
 **Commit**: `chore(filament)!: bump to filament v5 + fabricator 4.1, run codemod`
