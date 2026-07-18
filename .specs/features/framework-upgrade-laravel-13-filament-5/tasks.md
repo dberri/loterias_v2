@@ -429,11 +429,11 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] Tech Stack reads Laravel 13, PHP 8.3+ (Sail image 8.5), Filament 5
-- [ ] Fabricator reference updated to v4
-- [ ] Only version facts changed — the stale "Sail provisions MySQL" line stays (it is wrong, but it is out of scope; flag it, don't fix it)
-- [ ] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
-- [ ] Test count: 38 files, full suite green — **Phase 3 ends green**
+- [x] Tech Stack reads Laravel 13, PHP 8.3+ (Sail image 8.5), Filament 5
+- [x] Fabricator reference updated to v4
+- [x] Only version facts changed — the stale "Sail provisions MySQL" line stays (it is wrong, but it is out of scope; flag it, don't fix it) — confirmed still present and unmodified; container actually runs Postgres 17 per context.md's Current-State Inventory
+- [x] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
+- [x] Test count: 38 files, full suite green — **Phase 3 ends green** — actual verified count is 36 files, 198 tests passed (unchanged throughout Phase 3)
 
 **Tests**: none (docs) · **Gate**: build
 **Commit**: `docs: update CLAUDE.md for laravel 13 + filament 5`
