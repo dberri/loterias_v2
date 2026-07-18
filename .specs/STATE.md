@@ -109,36 +109,47 @@
 - **Date**: 2026-07-18
 - **Status**: active
 
+### AD-014
+- **Decision**: Structured data (JSON-LD) is emitted **inline in the page body**, never pushed to the base layout's `head` stack. Binding on every current and future page type.
+- **Reason**: `@push('head')` in `draw-page.blade.php` silently emitted **nothing** on CI — zero script tags, the substring absent from the response — while passing on PHP 8.3, 8.4 and 8.5 locally, with a cleared view cache and with CI's environment overlaid. Diagnostics proved the data was correct at render time (`$page->draw` resolved; `draw_date` and `game_name` populated), so the push content was lost across the component boundary rather than never generated. Google reads JSON-LD anywhere in the document, so the stack bought nothing and cost the entire SEO payload wherever it misbehaves.
+- **Trade-off**: Structured data now sits in `<body>` rather than `<head>`, which reads as less conventional to a human skimming the source. Accepted: convention is worth nothing against markup that vanishes silently. The root cause of the stack loss is **still unknown** — this avoids the mechanism rather than fixing it, so if `@push`/`@stack` is ever reintroduced across a component boundary, this class of failure returns. As of 2026-07-18 no app view uses `@push`, `@prepend` or `@stack` (verified by grep).
+- **Scope**: `seo-draw-page-generation` and any future page type built on the Fabricator block pattern.
+- **Lesson**: The failure mode that matters here is **silence**. The page returned 200 and rendered correctly while the payload it existed to emit was absent — nothing observable distinguished working from broken. Markup whose only job is to be machine-read needs a test that asserts it is *present*, because no human will notice its absence.
+- **Date**: 2026-07-18
+- **Status**: active
+
 ## Handoff
 
-- **Features with Specify + Design complete**: `seo-draw-page-generation`, `provider-drivers`, `automation-and-scheduling`, `infrastructure-cloud-postgres-backups`. **`seo-draw-page-generation` now also has `tasks.md` (26 tasks, 6 phases, 16/16 requirements mapped, all three pre-approval gates passing).**
-- **Phase / Task**: `seo-draw-page-generation` Execute is **functionally complete (T1–T26), re-verified ⚠️ Issues on 2026-07-15 (second pass)** — see `.specs/features/seo-draw-page-generation/validation.md`. All 16 requirements now pass with spec-precise tests (76 tests, 0 failed); the P1 MVP's Independent Test scenario runs end-to-end; the `expired`/`cancelled` batch bug is fixed. **Not yet committed**: T18–T26 exist only as uncommitted working-tree changes — must be split into atomic per-task commits before this is "done" (violates the skill's one-commit-per-task rule). Three Minor cleanups also outstanding: `ContentCreator.php` (T22) still exists as unreferenced dead code referencing a deleted `DrawPage` class; `DrawPageLayout.php` (T24) was never created so the admin Layout dropdown won't recognize `'draw-page'`; a handful of untraceable `Draw` accessor aliases (`game`, `numbers`, `accumulated`, etc.) were added without a task/test trail. Next: commit the diff per-task, apply the three Minor fixes, re-run `pint --dirty && php artisan test`, then this feature can move to `infrastructure-cloud-postgres-backups` per the original sequencing plan.
+- **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`.
+- **Current branch**: `feat/infrastructure-postgres-backups` → **PR #1** (https://github.com/dberri/loterias_v2/pull/1). **CI green: 178 passed.** Not merged.
 
-### Seed-data audit (2026-07-13) — findings that changed the task breakdown
+### `infrastructure-cloud-postgres-backups` — code scope COMPLETE, operator scope OPEN
 
-`database/seeders/lotteries/megasena/draws/` holds **2,608 real Caixa payloads** (concursos 1–2608, latest 05/07/2023 — the corpus is ~3 years stale). Auditing them against `Draw`'s accessors found:
+Executed T1–T10 and T12–T18 (15 of 21 tasks) as two sequential batches plus an independent verification pass. Test suite **77 → 178**, no deletions. Verifier injected 12 behaviour-level mutations, all 12 killed; report in that feature's `validation.md`.
 
-- **`listaDezenas` format changes mid-corpus.** Concursos 1–2482 are 3-digit zero-padded (`"004"`); 2483+ (from 21/05/2022) are 2-digit (`"20"`). `getDrawnNumbersAttribute()` returns the raw array, so pages for 95% of the corpus would render `004 005 030`. **Fixturing from the newest draw would hide this entirely.** → seo T5.
-- **`dataProximoConcurso` is `""`, not null, on 281 draws.** `?? null` does not catch an empty string, so `next_draw_date` returns `""`. → seo T5.
-- **`numeroConcursoAnterior` and `valorEstimadoProximoConcurso`** are present in all 2,608 payloads but have **no accessor**, though `related-links` and `draw-details` both need them. → seo T5, T17, T18.
-- **Only Mega-Sena is seeded** — zero Lotofácil/Quina payloads. Lotofácil has 15 dezenas / 5 faixas and Quina 5 / 4, vs Mega's 6 / 3, so anchored blocks are untested exactly where they'd break. → seo T6 captures real payloads for both via `app:scrape-draw`.
-- **Schema is otherwise stable**: all 8 accessor-required keys present in all 2,608 payloads; 591 draws with faixa-1 winners, 2,017 accumulated, 568 with winner cities — both branches have abundant real fixtures.
-- **⚠️ Cross-feature blocker: 415 payloads contain NUL bytes (` `) in `nomeTimeCoracaoMesSorte`.** Harmless on MySQL/SQLite; **PostgreSQL rejects ` ` in `jsonb`**, so ~16% of `draws` rows would fail to insert during the cutover. Recorded as **INFRA-21**. Deliberately **not** fixed in seo — `raw_data` must stay byte-faithful to Caixa (AD-001), so the fix belongs at the storage boundary and must cover future scrapes, not just the backfill.
-- **Completed this session (2026-07-13)**:
-  - `provider-drivers/{spec,design}.md` — transcribed; the source doc's "extract OpenAI into a driver" work item was **dropped as redundant** (seo's design already makes `OpenAiContentProvider` a first-class driver) and replaced with PROVIDER-04: OpenAI must pass the shared contract suite.
-  - `automation-and-scheduling/{context,spec,design}.md` — **rebuilt from scratch, not transcribed.** The 2026-07-11 source doc contradicted AD-003 (invented "Content records"), AD-006 (invented a `PendingReview` state), the batch architecture (per-draw `GenerateDrawPage` job), and the real CLI signatures; it also specified a colliding custom `failed_jobs` migration and a large ops surface. Full defect table in that feature's `context.md`.
-  - `infrastructure-cloud-postgres-backups/{spec,design}.md` — transcribed; ops surface trimmed per AD-009, and quarterly restore drills replaced with **one executed drill** (a skipped recurring drill manufactures false confidence).
-  - `STATE.md` — AD-007 through AD-010.
-- **In-progress**: none
-- **Next step**: The critical-path question is **sequencing**, not more specs. `seo-draw-page-generation` is the hard dependency of everything else and has no tasks and no code — it must be broken into tasks and executed first. Recommended order:
-  1. **`seo-draw-page-generation`** — Tasks → Execute. Everything else is blocked on the symbols it creates (`Page`, `PageStatus`, `PageAssembler`, `BatchContentProvider`, `config/content.php`).
-  2. **`infrastructure-cloud-postgres-backups`** — the Postgres cutover is cheapest **right now**, because per AD-003 only `draws` exists to migrate. That window closes as soon as page generation runs at scale.
-  3. **`automation-and-scheduling`** — needs the scheduler/worker from (2).
-  4. **`provider-drivers`** — independent of (2) and (3); can run in parallel once (1) lands.
-- **Blockers / known traps**:
-  - **Circular dependency**: `automation-and-scheduling` builds `AlertNotifier`, which `infrastructure`'s export-failure alerting reuses; `infrastructure` builds the scheduler/worker that `automation`'s scheduled entries need. **Break the cycle by building `AlertNotifier` first as a shared prerequisite** — it is a small service with no infrastructure dependency. Decide this explicitly at Tasks time; do not discover it mid-execution.
-  - **`provider-drivers` has a blocking verification task**: Anthropic's and Gemini's batch + structured-output API shapes are deliberately **not asserted anywhere** in its spec or design. They must be verified against official docs before any driver code is written. The design ships an intentionally empty "Verified Vendor API Shapes" appendix for this.
-  - **`infrastructure` has a blocking dialect audit** (INFRA-10) before cutover. Expected finding is near-zero (Eloquent-only convention), but expected ≠ verified.
-- **Still un-designed (stubs only)**: `additional-lotteries`, `player-tools`, `provider-cost-comparison` (the last is deliberately deferred). These need genuine brainstorming, not transcription — they carry real open questions (which games first? how do two-draw games like Dupla Sena render? client- vs server-side tools?).
-- **Uncommitted files**: all of `.specs/` (untracked)
-- **Branch**: main
+**Deliberately NOT done — needs Laravel Cloud credentials, and none is satisfiable by documentation:**
+- **T11 production cutover** — ⏳ **time-sensitive.** Per AD-003 only `draws` needs migrating today; that stops being true once page generation runs at scale, and the migration gets more expensive from then on. This is the one deferred task with a real clock.
+- **T19 restore drill** — INFRA-16 closes only by *executing* a restore and recording elapsed time.
+- **T20/T21** Laravel Cloud deploy + in-production verification.
+
+**Consequence to state plainly**: export and restore code is tested and green, but **no backup has ever been taken from production and no restore has ever been performed.**
+
+### Findings that changed the specs (all measured, not assumed)
+
+1. **AD-012 corrected.** `raw_data` is a `json` column, not `jsonb`. Postgres `json` **accepts** NUL; only `jsonb` rejects it. The predicted loud insert failure was actually **silent latent corruption** — rows insert clean, then `->>` raises SQLSTATE 22P05 and `ALTER TYPE ... jsonb` is blocked. Makes `NulSafeJson` more load-bearing than the spec that justified it.
+2. **AD-013 added.** INFRA-17's "enforced by lifecycle rules, not application code" was **unsatisfiable** for the monthly tier — S3 cannot express "keep the first export of each month". Monthly retention was silently 35 days. Now written by `ExportCorpus` into a **sibling** `monthly/` prefix (nesting it under `exports/` would let the 35-day rule delete the 12-month tier).
+3. **AD-014 added.** Draw-page JSON-LD was **absent in a clean environment** — a production SEO defect live in `main` since seo was marked verified. See AD-014.
+
+### Open items
+
+- **INFRA-22** (open, unmapped): AD-008 only partially enforced. Laravel 11+ merges the framework's bundled `config/database.php`, so `sqlite`/`mysql`/`mariadb` stay reachable despite deletion and `DB_CONNECTION=sqlite` still yields a working connection. Same root cause as the PHP 8.5 `PDO::MYSQL_ATTR_SSL_CA` deprecations in test output.
+- **AD-014's root cause is unknown** — the fix avoids `@push`/`@stack` rather than explaining it.
+- Migration backfill, Scraper fallback branch and the schedule assertion were all closed post-verification.
+
+### Next step
+
+Merge PR #1, then **`infrastructure` T11 (cutover)** while it is still cheap. After that, `automation-and-scheduling` — it consumes `AlertNotifier` (AD-011) and must **not** rebuild it. `provider-drivers` is independent and can run in parallel; it still carries a blocking research task (Anthropic/Gemini batch + structured-output API shapes are deliberately unasserted).
+
+### Standing lesson from this session
+
+Every one of the three spec corrections above was found by **executing** something — a query against a real engine, a lifecycle rule against real S3 semantics, the suite on a machine that wasn't the author's. None was found by review. The pipeline's spec/design/tasks/verify stages all ran on one machine and all passed; the first execution elsewhere surfaced a live production defect in minutes.
