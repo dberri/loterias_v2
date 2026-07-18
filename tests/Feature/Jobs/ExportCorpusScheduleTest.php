@@ -16,12 +16,29 @@ use Tests\TestCase;
  */
 class ExportCorpusScheduleTest extends TestCase
 {
+    /**
+     * The spec says "nightly, off-peak" and deliberately does not fix a clock
+     * time, so this asserts those two properties rather than a specific
+     * expression. Pinning an exact string would fail the moment someone shifted
+     * the run by ten minutes — a change the requirement permits — which trains
+     * people to edit the test to match the code instead of the other way round.
+     */
     public function test_the_corpus_export_is_scheduled_nightly_off_peak(): void
     {
         $event = $this->exportEvent();
 
         $this->assertNotNull($event, 'ExportCorpus is not registered with the scheduler.');
-        $this->assertSame('30 3 * * *', $event->expression);
+
+        [$minute, $hour, $dayOfMonth, $month, $dayOfWeek] = explode(' ', $event->expression);
+
+        $this->assertSame(['*', '*', '*'], [$dayOfMonth, $month, $dayOfWeek], 'The export must run every night.');
+        $this->assertNotSame('*', $hour, 'An hourly export is not a nightly one.');
+        $this->assertNotSame('*', $minute);
+        $this->assertContains(
+            (int) $hour,
+            range(0, 5),
+            'The export must run off-peak; it competes with the site for the database.',
+        );
     }
 
     public function test_the_scheduled_export_cannot_overlap_itself(): void

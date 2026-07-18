@@ -62,6 +62,7 @@
 - **Decision**: PostgreSQL is the canonical database engine in **every** environment — local (Sail), CI, and production. SQLite and MySQL are retired and removed from config, not left as fallbacks.
 - **Reason**: A dialect bug can only be caught before production if every environment runs the same engine. `draws.raw_data` and `pages.blocks` are JSON columns central to the whole app; a silent serialization difference between engines would corrupt every `Draw` accessor at once.
 - **Trade-off**: Loses the zero-setup local SQLite path — a developer with broken Docker cannot trivially run the app. Accepted deliberately: an optional parity is not parity, and leaving SQLite configured guarantees someone eventually ships a dialect bug.
+- **Amendment (2026-07-18, verified)**: AD-008 is **only partially enforced in practice**. Laravel 11+ merges the framework's bundled `config/database.php`, so deleting the `sqlite`/`mysql`/`mariadb` blocks from the app config does NOT remove them — `config('database.connections')` still returns `sqlite, mysql, mariadb, pgsql, sqlsrv`. The default is correctly `pgsql` and every environment points at Postgres, but `DB_CONNECTION=sqlite` still yields a working SQLite connection — exactly the fallback AD-008 exists to eliminate. Same root cause as the 112 PHP 8.5 `PDO::MYSQL_ATTR_SSL_CA` deprecations now flagged across the suite. Tracked as **INFRA-22**; open.
 - **Scope**: `infrastructure-cloud-postgres-backups`; binding on every feature that writes a migration or a query.
 - **Date**: 2026-07-13
 - **Status**: active
@@ -80,6 +81,32 @@
 - **Trade-off**: Higher up-front cost per driver, and a vendor without a native batch primitive must have batching emulated inside its driver rather than bending the interface.
 - **Scope**: `provider-drivers`; binding on `provider-cost-comparison`. Extends AD-005.
 - **Date**: 2026-07-13
+- **Status**: active
+
+### AD-011
+- **Decision**: `App\Services\AlertNotifier` is built **once, by `infrastructure-cloud-postgres-backups` (T1)**, as the shared prerequisite that breaks the circular dependency between that feature and `automation-and-scheduling`. `automation-and-scheduling` **consumes** it (AUTO-11) and MUST NOT re-implement it.
+- **Reason**: `infrastructure` needs `AlertNotifier` for export-failure alerts, while `automation` needs the scheduler/worker that `infrastructure` builds — a naive task ordering deadlocks. `AlertNotifier` is small and has no infrastructure dependency, so it is the natural seam to cut. Infrastructure is sequenced first, so it carries it.
+- **Trade-off**: `infrastructure` builds a service whose primary consumer is another feature, so its de-dup semantics must be designed for both callers rather than just export failures.
+- **Scope**: `infrastructure-cloud-postgres-backups` (builds); binding on `automation-and-scheduling` (consumes, does not rebuild). Implements the mitigation recorded in that feature's design Risks table.
+- **Date**: 2026-07-18
+- **Status**: active
+
+### AD-012
+- **Decision**: NUL bytes (`\0`) in `draws.raw_data` are stripped **on write, at the storage boundary**, via a custom Eloquent cast (`App\Casts\NulSafeJson`) — covering both the Postgres backfill and all future scrapes. Retyping `raw_data` from `json` to `text` to sidestep PostgreSQL's validation was considered and **rejected**.
+- **Reason**: 415 of the 2,608 real seeded Mega-Sena payloads carry a NUL inside `nomeTimeCoracaoMesSorte` (confirmed by audit, re-verified 2026-07-18). **Corrected 2026-07-18 — the original reason named the wrong failure mode.** `draws.raw_data` is `$table->json()` → PostgreSQL **`json`**, not `jsonb`. Measured directly on PG 17.10: `json` **accepts** \0 on insert; only `jsonb` rejects it. So the cutover would NOT have failed loudly on 415 rows — they would have inserted cleanly and become **permanently unreadable at SQL level** (`->>` raises SQLSTATE 22P05 `unsupported Unicode escape sequence`, and a later `ALTER TYPE ... jsonb` is consequently blocked). The cast is therefore **more** load-bearing than first believed: it is the only thing standing between the corpus and silent latent corruption, not merely a convenience that avoids a noisy insert error. The NUL is junk padding in a field no `Draw` accessor reads and no anchored fact derives from, so stripping it alters zero facts.
+- **Trade-off**: A narrow, deliberate exception to AD-001's byte-faithfulness rule. It is licensed **only** by the accessor-parity test in T2/T9 — if that test is ever removed, the exception is no longer justified.
+- **Lesson**: A spec that asserts engine behaviour (“Postgres rejects X”) must name the exact column type it assumes. `json` and `jsonb` differ precisely here, and picking the wrong one inverts the failure mode from loud to silent.
+- **Scope**: `infrastructure-cloud-postgres-backups` (INFRA-21); binding on any future feature that writes `raw_data`. Narrows AD-001 at the storage boundary only — the domain layer still treats `raw_data` as the fact source of truth.
+- **Date**: 2026-07-18
+- **Status**: active
+
+### AD-013
+- **Decision**: Backup retention is split by mechanism, not held to one. The **daily 35-day tier** is an object-storage lifecycle rule. The **monthly 12-month tier** is produced by `ExportCorpus` copying an export into a `monthly/{YYYY-MM}/` prefix when that month has none — application code, deliberately. `monthly/` is a **sibling** of `exports/`, never nested inside it.
+- **Reason**: The original INFRA-17 required retention be "enforced by lifecycle rules, not application code". For the monthly tier that is not a preference but an impossibility: lifecycle rules match on prefix, tag and age, and cannot express "keep the first export of each month". Selecting a monthly artifact is inherently an act of the process that writes it. Left as specified, the monthly rule matched nothing and effective retention was silently 35 days for everything — the 12-month tier existed only on paper.
+- **Trade-off**: Reintroduces application code into a durability path the design wanted to keep declarative, so a bug in the writer can now cost the long-term tier (mitigated: promotion is keyed on *absence* of the month's artifact, so the next successful run retries it, per AD-007's self-healing posture). The sibling-prefix requirement is load-bearing and easy to undo by accident — nesting `monthly/` under `exports/` would let the 35-day expiry silently delete the 12-month backups.
+- **Scope**: `infrastructure-cloud-postgres-backups` (INFRA-17). Amends the spec's AC P3.6 and the design's Retention component.
+- **Lesson**: "Enforce this with configuration, not code" is an architectural preference that can quietly encode an impossibility. Check that the configuration primitive can actually express the rule before making it a requirement — otherwise the requirement is satisfied by a rule that matches nothing, which looks identical to success.
+- **Date**: 2026-07-18
 - **Status**: active
 
 ## Handoff

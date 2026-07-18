@@ -107,6 +107,72 @@ class ExportCorpus implements ShouldQueue
             $directory.'/manifest.json',
             (string) json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         );
+
+        $this->promoteToMonthly($directory, $manifest);
+    }
+
+    /**
+     * Copy this export into the 12-month tier when the month has no artifact yet
+     * (INFRA-17).
+     *
+     * This has to live in the writer. A bucket lifecycle rule can only match on
+     * prefix, tag and age — it cannot express "keep the first export of each
+     * month", so selecting the monthly artifact is necessarily an act of the
+     * process that writes it. The spec's original "enforced by lifecycle policy,
+     * not application code" could not be satisfied as written; see AD-013.
+     *
+     * `monthly/` is deliberately a SIBLING of `exports/`, never nested inside
+     * it. A 35-day expiry rule scoped to the `exports/` prefix would otherwise
+     * silently delete the 12-month tier along with the dailies — a backup
+     * system that quietly eats its own long-term backups.
+     *
+     * Promotion is keyed on absence rather than on "is it the 1st", so a month
+     * whose first night failed still gets its artifact from the next successful
+     * run. The next run is the retry (AD-007).
+     *
+     * @param  array<string, mixed>  $manifest
+     */
+    private function promoteToMonthly(string $directory, array $manifest): void
+    {
+        $target = 'monthly/'.now()->format('Y-m');
+
+        if ($this->disk()->exists($target.'/manifest.json')) {
+            return;
+        }
+
+        foreach ($manifest['tables'] as $meta) {
+            $this->disk()->writeStream(
+                $target.'/'.$meta['artifact'],
+                $this->readStreamOrFail($directory.'/'.$meta['artifact']),
+            );
+        }
+
+        /*
+         * The manifest is copied last and its checksums still describe the same
+         * bytes, so the monthly tier is verifiable by exactly the same procedure
+         * as a daily one — and a half-copied month never carries a manifest
+         * vouching for it.
+         */
+        $this->verifyArtifacts($target, $manifest);
+
+        $this->disk()->put(
+            $target.'/manifest.json',
+            (string) json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        );
+    }
+
+    /**
+     * @return resource
+     */
+    private function readStreamOrFail(string $path)
+    {
+        $stream = $this->disk()->readStream($path);
+
+        if (! is_resource($stream)) {
+            throw new RuntimeException("Export artifact [{$path}] could not be read for monthly promotion.");
+        }
+
+        return $stream;
     }
 
     /**

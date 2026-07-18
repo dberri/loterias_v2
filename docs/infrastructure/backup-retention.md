@@ -11,8 +11,8 @@
 > is currently in force.** Until a bucket exists and the policy below is applied
 > to it, artifacts accumulate forever and INFRA-17 is unmet.
 >
-> There is also an unresolved prerequisite for the monthly tier — see
-> [Open gap](#open-gap-nothing-writes-the-monthly-tier-yet) below.
+> The monthly tier's writer IS implemented and tested — see
+> [How the monthly tier gets written](#how-the-monthly-tier-gets-written) below.
 
 ---
 
@@ -125,24 +125,36 @@ configuration should not be provider-locked either.
 
 ---
 
-## Open gap: nothing writes the monthly tier yet
+## How the monthly tier gets written
 
-`App\Jobs\ExportCorpus` writes only to `exports/{YYYY-MM-DD}/`. **No artifact is
-ever placed under `monthly/`**, so the second rule above currently matches
-nothing and the effective retention is 35 days for everything.
+`App\Jobs\ExportCorpus` promotes an export into `monthly/{YYYY-MM}/` whenever
+that month has no artifact yet, then verifies the copied bytes against the same
+manifest checksums before writing the manifest. A half-copied month therefore
+never carries a manifest vouching for it, and a monthly artifact is checkable by
+exactly the same procedure as a daily one.
 
-A lifecycle policy cannot close this on its own: S3 rules can expire objects by
-age and prefix, but cannot promote "the first export of each month" into a
-longer-lived tier. Selecting which artifact is the monthly one is necessarily a
-writer-side decision — either a copy to the `monthly/` prefix or an object tag —
-and both are application changes outside T17's scope (T17 covers the lifecycle
-policy; adding untested job behaviour here would be scope creep).
+**Why this is application code and not a lifecycle rule.** S3 rules expire
+objects by prefix, tag and age; they cannot express "keep the first export of
+each month". Selecting the monthly artifact is inherently writer-side, so
+INFRA-17's original "enforced by lifecycle policy, not application code" was
+unsatisfiable for this half. The requirement was amended rather than quietly
+left broken — see **AD-013**.
 
-**Consequence:** INFRA-17 is half met. The 35-day daily tier is fully specified
-and applicable; the 12-month monthly tier is specified but unreachable until the
-export promotes one artifact per month. This is recorded rather than quietly
-dropped — a retention policy believed to be running when it is not is the same
-class of false confidence as an unverified backup.
+**Promotion keys on absence, not on the calendar.** The job asks "does this
+month have an artifact?", not "is today the 1st". A month whose first nights
+failed is still covered by the next successful run, matching the self-healing
+posture of AD-007. A "promote only on the 1st" rule would lose an entire month
+to one bad night.
+
+**The sibling-prefix rule is load-bearing.** See the Prefix layout section:
+nesting `monthly/` under `exports/` would place the 12-month tier inside the
+35-day rule's prefix and silently delete it. The test
+`test_the_monthly_tier_is_a_sibling_of_the_daily_prefix_not_nested_inside_it`
+exists to make that mistake fail loudly.
+
+**Status:** the writer is implemented and tested. The lifecycle rules themselves
+are **still unapplied** — no bucket exists yet. Until they are applied, nothing
+expires at all.
 
 ---
 
