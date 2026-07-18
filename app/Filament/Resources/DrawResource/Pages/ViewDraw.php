@@ -15,7 +15,7 @@ class ViewDraw extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('Informações do Sorteio')
                     ->schema([
