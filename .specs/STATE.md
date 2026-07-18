@@ -129,8 +129,17 @@
 
 ## Handoff
 
-- **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`, `framework-upgrade-laravel-13-filament-5` (all 3 phases code-complete, Verifier pending).
-- **Current branch**: `feat/infrastructure-postgres-backups` → **PR #1** (https://github.com/dberri/loterias_v2/pull/1). **CI green: 178 passed.** Not merged.
+- **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`, `framework-upgrade-laravel-13-filament-5` (**done, Verifier PASS**).
+- **`feat/infrastructure-postgres-backups`** → **PR #1** (https://github.com/dberri/loterias_v2/pull/1). **CI green: 178 passed.** Not merged.
+- **`chore/upgrade-laravel-filament`** (this session): all 15 tasks (T1-T15, 3 phases) complete and committed; Verifier PASS with 0 ranked gaps. No PR opened yet. Working tree clean over `app/`. Not merged, not based on the infra branch (forked from `main`/an earlier point — confirm base before opening a PR, since infra's PR #1 is also unmerged).
+
+### `framework-upgrade-laravel-13-filament-5` — COMPLETE, Verifier PASS
+
+Filament 3→4→5, Livewire 4, Laravel 12→13, PHP 8.5 Sail runtime, in three phase-batch sub-agents plus an independent Verifier (author ≠ verifier). Suite: 198 tests, 0 failing throughout (tasks.md's stated 37→38 file counts were stale; real baseline was 36 files/198 tests the whole time — never reduced). Verifier's discrimination sensor: 4 mutations, 3 killed, 1 survived (`PageResource`'s `visit`-action URL generation has no dedicated test — optional follow-up, not a regression). Full report: `.specs/features/framework-upgrade-laravel-13-filament-5/validation.md`.
+
+**AD-015 recorded**: spec.md's Non-Goals table wrongly called the `openai-php/laravel` 0.15→0.20 bump "independent"/"unconstrained by Laravel 13" — it was actually forced (0.15.0 has no release supporting `laravel/framework ^13`). Verified independently by the Verifier against the installed package's own composer constraints.
+
+**One out-of-scope defect surfaced, not fixed (pre-existing, predates this feature's diff range)**: public draw pages never call `FilamentFabricator::getStyles()`/register styles, so `draw-page.blade.php` ships with no `<link rel="stylesheet">` at all. Confirmed via `git show` that this predates T8-T11 (which touched zero `app/Filament/**` files). Candidate for a `seo-draw-page-generation` follow-up bug.
 
 ### `infrastructure-cloud-postgres-backups` — code scope COMPLETE, operator scope OPEN
 
@@ -157,7 +166,7 @@ Executed T1–T10 and T12–T18 (15 of 21 tasks) as two sequential batches plus 
 
 ### Next step
 
-Merge PR #1, then **`infrastructure` T11 (cutover)** while it is still cheap. After that, `automation-and-scheduling` — it consumes `AlertNotifier` (AD-011) and must **not** rebuild it. `provider-drivers` is independent and can run in parallel; it still carries a blocking research task (Anthropic/Gemini batch + structured-output API shapes are deliberately unasserted).
+Two independent branches now sit ready, unmerged: `feat/infrastructure-postgres-backups` (PR #1, CI green) and `chore/upgrade-laravel-filament` (Verifier PASS, no PR yet — open one). Merge PR #1, then **`infrastructure` T11 (cutover)** while it is still cheap. Decide merge order between the two branches before opening the second PR — the upgrade branch changes `composer.json`/`docker-compose.yml`/CI broadly and will conflict with anything infra touches in those files. After both land: `automation-and-scheduling` — it consumes `AlertNotifier` (AD-011) and must **not** rebuild it. `provider-drivers` is independent and can run in parallel; it still carries a blocking research task (Anthropic/Gemini batch + structured-output API shapes are deliberately unasserted).
 
 ### Standing lesson from this session
 
