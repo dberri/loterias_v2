@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Draw;
 use App\Models\Page;
+use App\Services\AlertNotifier;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\LazyCollection;
 use RuntimeException;
+use Throwable;
 
 /**
  * Layer 2 of the backup strategy: a portable, provider-independent export of
@@ -31,7 +33,33 @@ class ExportCorpus implements ShouldQueue
      */
     private const CHUNK = 500;
 
-    public function handle(): void
+    /**
+     * One alert key for the whole export, so a backup broken for a week emails
+     * once rather than seven times.
+     */
+    private const ALERT_KEY = 'export-corpus-failed';
+
+    /**
+     * A backup that fails quietly is worse than no backup, because it
+     * manufactures confidence. Every failure path therefore alerts and then
+     * rethrows: the alert tells the operator, and the rethrow lets the job
+     * fail so it lands in Laravel's failed_jobs table (AD-009).
+     */
+    public function handle(AlertNotifier $alerts): void
+    {
+        try {
+            $this->export();
+        } catch (Throwable $e) {
+            $alerts->notify(
+                self::ALERT_KEY,
+                'The nightly corpus export failed: '.$e->getMessage(),
+            );
+
+            throw $e;
+        }
+    }
+
+    private function export(): void
     {
         $directory = 'exports/'.now()->format('Y-m-d');
 

@@ -33,7 +33,7 @@ class ExportCorpusPagesTest extends TestCase
     {
         Page::factory()->count(3)->create();
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         Storage::disk('backups')->assertExists($this->path(self::DRAWS));
         Storage::disk('backups')->assertExists($this->path(self::PAGES));
@@ -56,7 +56,7 @@ class ExportCorpusPagesTest extends TestCase
 
         $page = Page::factory()->published()->create(['blocks' => $blocks]);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $record = $this->records(self::PAGES)[0];
 
@@ -75,7 +75,7 @@ class ExportCorpusPagesTest extends TestCase
         Schema::drop((new Page)->getTable());
         $this->assertFalse(Schema::hasTable((new Page)->getTable()));
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         Storage::disk('backups')->assertExists($this->path(self::DRAWS));
         Storage::disk('backups')->assertMissing($this->path(self::PAGES));
@@ -90,7 +90,7 @@ class ExportCorpusPagesTest extends TestCase
     {
         $this->assertSame(0, Page::count());
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         Storage::disk('backups')->assertExists($this->path(self::PAGES));
         $this->assertSame('', Storage::disk('backups')->get($this->path(self::PAGES)));
@@ -106,7 +106,7 @@ class ExportCorpusPagesTest extends TestCase
             $queries[] = $query->sql;
         });
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $reads = array_values(array_filter(
             $queries,
@@ -125,7 +125,7 @@ class ExportCorpusPagesTest extends TestCase
         Page::factory()->count(2)->create();
         $before = Page::orderBy('id')->get()->map->getAttributes()->all();
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $this->assertSame(2, Page::count());
         $this->assertEquals($before, Page::orderBy('id')->get()->map->getAttributes()->all());

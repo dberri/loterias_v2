@@ -36,7 +36,7 @@ class ExportCorpusManifestTest extends TestCase
     {
         $this->seedDraw(500);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         Storage::disk('backups')->assertExists($this->path('manifest.json'));
         $this->assertIsArray($this->manifest());
@@ -47,7 +47,7 @@ class ExportCorpusManifestTest extends TestCase
         $this->travelTo('2026-07-18 03:15:00');
         $this->seedDraw(500);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $this->assertSame(
             now()->toIso8601String(),
@@ -61,7 +61,7 @@ class ExportCorpusManifestTest extends TestCase
         $this->seedDraw(500);
         Page::factory()->count(4)->create();
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $manifest = $this->manifest();
 
@@ -78,7 +78,7 @@ class ExportCorpusManifestTest extends TestCase
         $this->seedDraw(500);
         $this->assertSame(0, Page::count());
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $this->assertSame(0, $this->manifest()['tables']['pages']['rows']);
     }
@@ -88,7 +88,7 @@ class ExportCorpusManifestTest extends TestCase
         $this->seedDraw(500);
         Page::factory()->create();
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         foreach ($this->manifest()['tables'] as $meta) {
             $this->assertSame(
@@ -102,7 +102,7 @@ class ExportCorpusManifestTest extends TestCase
     {
         $this->seedDraw(500);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $manifest = $this->manifest();
 
@@ -118,7 +118,7 @@ class ExportCorpusManifestTest extends TestCase
         Schema::drop((new Page)->getTable());
         $this->seedDraw(500);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $this->assertArrayHasKey('draws', $this->manifest()['tables']);
         $this->assertArrayNotHasKey('pages', $this->manifest()['tables']);
@@ -138,7 +138,7 @@ class ExportCorpusManifestTest extends TestCase
         $this->makeBackupDiskCorruptOnRead();
 
         try {
-            (new ExportCorpus)->handle();
+            ExportCorpus::dispatchSync();
             $this->fail('The export completed despite an artifact that does not match what was written.');
         } catch (RuntimeException $e) {
             $this->assertStringContainsString('failed checksum verification', $e->getMessage());
@@ -155,8 +155,7 @@ class ExportCorpusManifestTest extends TestCase
     {
         $this->seedDraw(500);
 
-        $job = new ExportCorpus;
-        $job->handle();
+        ExportCorpus::dispatchSync();
 
         $manifest = $this->manifest();
         Storage::disk('backups')->put(
@@ -167,7 +166,7 @@ class ExportCorpusManifestTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageMatches('/failed checksum verification/');
 
-        $job->verifyArtifacts($this->directory(), $manifest);
+        (new ExportCorpus)->verifyArtifacts($this->directory(), $manifest);
     }
 
     private function directory(): string

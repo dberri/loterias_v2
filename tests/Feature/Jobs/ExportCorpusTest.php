@@ -31,7 +31,7 @@ class ExportCorpusTest extends TestCase
         $this->seedDraw(500);
         $this->seedDraw(2608);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $path = 'exports/'.now()->format('Y-m-d').'/draws.ndjson';
         Storage::disk('backups')->assertExists($path);
@@ -43,7 +43,7 @@ class ExportCorpusTest extends TestCase
     {
         $this->seedDraw(500);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $records = $this->records();
         $this->assertCount(1, $records);
@@ -66,7 +66,7 @@ class ExportCorpusTest extends TestCase
         $this->assertStringContainsString("\0", $this->payload(2194)['nomeTimeCoracaoMesSorte']);
         $this->seedDraw(2194);
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $record = $this->records()[0];
 
@@ -90,7 +90,7 @@ class ExportCorpusTest extends TestCase
             $queries[] = $query->sql;
         });
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $reads = array_values(array_filter(
             $queries,
@@ -110,7 +110,7 @@ class ExportCorpusTest extends TestCase
         $this->seedDraw(2194);
         $before = Draw::orderBy('id')->get()->map->getAttributes()->all();
 
-        (new ExportCorpus)->handle();
+        ExportCorpus::dispatchSync();
 
         $this->assertSame(2, Draw::count());
         $this->assertEquals($before, Draw::orderBy('id')->get()->map->getAttributes()->all());
