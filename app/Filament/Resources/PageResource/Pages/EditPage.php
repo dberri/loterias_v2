@@ -12,9 +12,9 @@ class EditPage extends VendorEditPage
 {
     protected static string $resource = PageResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
-        return array_merge(parent::getActions(), [
+        return array_merge(parent::getHeaderActions(), [
             Action::make('publish')
                 ->label('Publish')
                 ->color('success')
