@@ -252,6 +252,47 @@ pre-existing baseline of 77. No test was deleted or skipped.
 
 ---
 
+## ⚠️ T9 finding — the NUL-byte premise in the spec is inaccurate for this schema
+
+The spec (P2 AC 7), `STATE.md`'s seed-data audit, and AD-012 all state that
+**PostgreSQL rejects ` ` in `jsonb`**, and conclude that "~16% of existing rows
+will **fail to insert** during cutover". Measured against PostgreSQL 17.10, the
+claim about `jsonb` is true but the conclusion about **this** schema is not:
+`draws.raw_data` is `$table->json(...)`, which Laravel maps to Postgres **`json`**,
+not `jsonb`.
+
+Measured behaviour (` ` is how `json_encode` always emits a NUL):
+
+| Operation | `json` column | `jsonb` column |
+| --------- | ------------- | -------------- |
+| `INSERT` a payload containing ` ` | ✅ **accepted** | ❌ rejected — `unsupported Unicode escape sequence` |
+| Read it back with `->>` (text extraction) | ❌ **fails**, SQLSTATE 22P05 | n/a |
+| `ALTER COLUMN ... TYPE jsonb` | ❌ **fails**, SQLSTATE 22P05 | n/a |
+
+**What this changes:** the cutover would **not** have failed loudly on 415 rows.
+Those rows would have inserted successfully and become **permanently unreadable at
+the SQL level** — any `->>`/`#>>` extraction, any cast to text, and any future
+migration to `jsonb` errors on them. That is a *worse* failure mode than the one
+the spec anticipated, because it is silent.
+
+**What this does not change:** AD-012's decision. `NulSafeJson` is still the right
+fix and is still load-bearing — it is simply preventing silent read-time corruption
+and a blocked `jsonb` migration, rather than preventing an insert failure. The
+rejected alternative (retyping `raw_data` to `text`) looks *worse* under the
+corrected facts, since it would discard JSON validity to preserve bytes that make
+the column unreadable.
+
+Both behaviours are asserted in `tests/Feature/Database/JsonRoundTripTest.php`
+(`test_a_nul_byte_written_around_the_cast_becomes_unreadable_at_sql_level` and
+`test_a_nul_bearing_payload_written_through_the_cast_stays_readable_at_sql_level`)
+so the corrected premise is enforced by the suite, not just recorded here.
+
+**Recommended follow-up (not actioned — outside T9's scope):** correct the wording
+of spec P2 AC 7, the `STATE.md` seed-data audit bullet, and AD-012's *Reason*
+field. The decisions they justify all stand; only the mechanism is misstated.
+
+---
+
 ## PostgreSQL version parity
 
 | Environment | Postgres major version | Source |
