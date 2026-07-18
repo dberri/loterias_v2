@@ -11,9 +11,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class RelatedLinksBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'related-links';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('related-links')
+        return $block
             ->schema([]);
     }
 

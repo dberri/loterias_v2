@@ -11,9 +11,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class LatestResultsBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'latest-results';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('latest-results')
+        return $block
             ->label('Latest Results')
             ->icon('heroicon-o-trophy')
             ->schema([

@@ -93,10 +93,10 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `larastan/larastan` ^3.0 present in `require-dev`
-- [ ] `composer install` resolves with no conflict against Laravel 12 / Filament 3
-- [ ] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
-- [ ] Test count: 37 files, full suite green (unchanged from baseline)
+- [x] `larastan/larastan` ^3.0 present in `require-dev`
+- [x] `composer install` resolves with no conflict against Laravel 12 / Filament 3
+- [x] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
+- [x] Test count: 37 files, full suite green (unchanged from baseline) — actual verified baseline is 35 files/183 tests; see batch summary deviation note
 
 **Tests**: none (manifest layer) · **Gate**: build
 **Commit**: `chore(deps): add larastan for the filament v4 upgrade script`
@@ -117,10 +117,10 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `composer show` reports `filament/filament` ^4.x and `z3d0x/filament-fabricator` ^3.1.x; `laravel/framework` still ^12.x; `php` still `^8.2`
-- [ ] `vendor/bin/filament-v4` has been run and **its full diff read and reviewed**, not blind-accepted — the vendor guide states it does not cover all breaking changes
-- [ ] The failing-test inventory is captured verbatim into the task's commit body — this list is the working checklist for T3–T7
-- [ ] Gate passes: `composer install --no-interaction && php artisan about && vendor/bin/pint --test`
+- [x] `composer show` reports `filament/filament` ^4.x and `z3d0x/filament-fabricator` ^3.1.x; `laravel/framework` still ^12.x; `php` still `^8.2` — pinned to `^4.11.5` specifically (resolved to v4.12.1), not `^4.0`, to clear 4 Composer-blocked security advisories affecting all earlier v4 releases; see commit `135cf5b` body
+- [x] `vendor/bin/filament-v4` has been run and **its full diff read and reviewed**, not blind-accepted — the vendor guide states it does not cover all breaking changes
+- [x] The failing-test inventory is captured verbatim into the task's commit body — this list is the working checklist for T3–T7
+- [x] Gate passes: `composer install --no-interaction && php artisan about && vendor/bin/pint --test`
 
 **Tests**: none (no behavior authored) · **Gate**: boot
 **Commit**: `chore(filament)!: bump to filament v4 + fabricator 3.1, run codemod`
@@ -139,12 +139,12 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] File is derived from the installed vendor `PageResource`, not from the previous v3-era fork
-- [ ] Exactly these app additions are re-applied, and nothing else: Generation section (status, batch_id, provider, generated_at placeholders); status/batch_id/provider/generated_at table columns; status + layout `SelectFilter`s; `visit` action
-- [ ] A diff against the vendor file shows only those additions
-- [ ] `Forms\Form` → Schema API, `Forms\{Get,Set}`, `Forms\Components\{Section,Group}`, and `Tables\Actions\*` all migrated to their v4 homes
-- [ ] Gate passes: `php artisan test`
-- [ ] Test count: 37 files, `PageResourceTest` green
+- [x] File is derived from the installed vendor `PageResource`, not from the previous v3-era fork
+- [x] Exactly these app additions are re-applied, and nothing else: Generation section (status, batch_id, provider, generated_at placeholders); status/batch_id/provider/generated_at table columns; status + layout `SelectFilter`s; `visit` action — the `visit` action is now vendor's own equivalent (see commit `dcc7b19` body for why re-forking it wasn't needed)
+- [x] A diff against the vendor file shows only those additions
+- [x] `Forms\Form` → Schema API, `Forms\{Get,Set}`, `Forms\Components\{Section,Group}`, and `Tables\Actions\*` all migrated to their v4 homes
+- [x] Gate passes: `php artisan test` — blocked by the T6-owned `PageBlock::defineBlock()` fatal recorded in T2; `PageResourceTest` verified green via a scratch/reverted patch (see commit `dcc7b19` body)
+- [x] Test count: 37 files, `PageResourceTest` green — actual verified file count is 35 (see T1 deviation note)
 
 **Tests**: feature · **Gate**: full
 **Commit**: `refactor(filament): re-derive PageResource from the fabricator v4 base`
@@ -163,13 +163,13 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `getActions()` migrated to the v4 header-action method; `Filament\Pages\Actions\Action` replaced with `Filament\Actions\Action`
-- [ ] `parent::` call updated to the matching parent method so vendor actions are still merged, not dropped
-- [ ] `requiresConfirmation()` and `color('success')` preserved
-- [ ] Publishing a `Generated` page still promotes it to `Published` and its public route returns 200
-- [ ] Publishing a `Failed` page still raises a validation error on `status` and leaves it `Failed`
-- [ ] Gate passes: `php artisan test`
-- [ ] Test count: 37 files; both publish cases in `PageResourceTest` green
+- [x] `getActions()` migrated to the v4 header-action method; `Filament\Pages\Actions\Action` replaced with `Filament\Actions\Action` (the import was already fixed by T2's codemod)
+- [x] `parent::` call updated to the matching parent method so vendor actions are still merged, not dropped
+- [x] `requiresConfirmation()` and `color('success')` preserved
+- [x] Publishing a `Generated` page still promotes it to `Published` and its public route returns 200
+- [x] Publishing a `Failed` page still raises a validation error on `status` and leaves it `Failed`
+- [x] Gate passes: `php artisan test` — blocked by the same T6-owned blocker; both publish cases verified green via scratch patch (see commit `11c12cb`)
+- [x] Test count: 37 files; both publish cases in `PageResourceTest` green — actual verified file count is 35 (see T1 deviation note)
 
 **Tests**: feature · **Gate**: full
 **Commit**: `refactor(filament): port the publish action to v4 header actions`
@@ -188,12 +188,12 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `Filament\Infolists\Infolist` and its `Components\{Section,TextEntry,RepeatableEntry}` migrated to their v4 homes
-- [ ] `Tables\Actions\{ViewAction,EditAction}` migrated to `Filament\Actions\*`
-- [ ] Resource remains list + view only — no create/edit surface introduced
-- [ ] `/admin/draws` list and a draw's view page both render
-- [ ] Gate passes: `php artisan test`
-- [ ] Test count: 37 files, full suite green
+- [x] `Filament\Infolists\Infolist` and its `Components\{Section,TextEntry,RepeatableEntry}` migrated to their v4 homes
+- [x] `Tables\Actions\{ViewAction,EditAction}` migrated to `Filament\Actions\*`
+- [x] Resource remains list + view only — no create/edit surface introduced
+- [x] `/admin/draws` list and a draw's view page both render — verified via a throwaway scratch test, deleted after use (see commit `639c21b`); no permanent test exists for this resource
+- [x] Gate passes: `php artisan test` — blocked by the same T6-owned blocker; verified green (except the known blocker) via scratch patch
+- [x] Test count: 37 files, full suite green — actual verified file count is 35 (see T1 deviation note)
 
 **Tests**: feature · **Gate**: full
 **Commit**: `refactor(filament): port DrawResource and its pages to v4`
@@ -212,13 +212,13 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] All 15 blocks migrated: `Forms\Components\Builder\Block` and the `TextInput`/`Select`/`Toggle`/`RichEditor`/`Repeater`/`FileUpload`/`DatePicker`/`Textarea` imports resolved to their v4 homes
-- [ ] Parked/commented blocks (`StatisticsCardsBlock`, `SimulationBlock`, `NumberGeneratorBlock`, `TimelineBlock`, `ComparisonTableBlock`, `LatestResultsBlock`) **load and register** — they are NOT made functional (out of scope)
-- [ ] `HeroSectionBlock::mutateData()`'s broken `Draw::drawPage` reference is ported **as-is** — pre-existing bug, explicitly out of scope
-- [ ] New test asserts all 15 block classes instantiate and every one appears in the registered block set
-- [ ] Existing `mutateData()` assertions for the 4 live blocks still pass unmodified
-- [ ] Gate passes: `php artisan test`
-- [ ] Test count: 38 files (37 + 1 new), full suite green
+- [x] All 15 blocks migrated: `Forms\Components\Builder\Block` and the `TextInput`/`Select`/`Toggle`/`RichEditor`/`Repeater`/`FileUpload`/`DatePicker`/`Textarea` imports resolved to their v4 homes — actual verified directory contains 14 block files, not 15 (see commit body); none of the 8 named component imports had actually moved namespace in v4 (all still resolve under `Filament\Forms\Components\*`), so the real work was restructuring `getBlockSchema()` into the `$name` property + `defineBlock(Block $block): Block` pattern fabricator 3.1's `PageBlock` base class now requires
+- [x] Parked/commented blocks (`StatisticsCardsBlock`, `SimulationBlock`, `NumberGeneratorBlock`, `TimelineBlock`, `ComparisonTableBlock`, `LatestResultsBlock`) **load and register** — they are NOT made functional (out of scope)
+- [x] `HeroSectionBlock::mutateData()`'s broken `Draw::drawPage` reference is ported **as-is** — pre-existing bug, explicitly out of scope. Correction: this reference actually lives in `RelatedLinksBlock.php` (lines 63/71), not `HeroSectionBlock` — CLAUDE.md/spec.md misattribute it. Left unmodified in either case.
+- [x] New test asserts all 15 block classes instantiate and every one appears in the registered block set — asserts 14, the actual verified count
+- [x] Existing `mutateData()` assertions for the 4 live blocks still pass unmodified
+- [x] Gate passes: `php artisan test` — full suite green (198 passed, 0 failed) after fixing two blocking pre-existing bugs in `IndividualDrawDetailsBlock.php` (see commit body)
+- [x] Test count: 38 files (37 + 1 new), full suite green — actual verified count is 36 files (35 + 1 new); 198 tests passed
 
 **Tests**: unit · **Gate**: full
 **Commit**: `refactor(filament): port page blocks and layouts to v4, cover registration`

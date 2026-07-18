@@ -13,9 +13,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class RichTextContentBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'rich-text-content';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('rich-text-content')
+        return $block
             ->label('Rich Text Content')
             ->icon('heroicon-o-document-text')
             ->schema([

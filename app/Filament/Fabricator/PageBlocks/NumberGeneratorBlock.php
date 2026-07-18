@@ -10,9 +10,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class NumberGeneratorBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'number-generator';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('number-generator')
+        return $block
             ->label('Number Generator')
             ->icon('heroicon-o-sparkles')
             ->schema([

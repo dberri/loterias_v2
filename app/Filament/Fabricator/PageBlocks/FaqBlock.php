@@ -11,9 +11,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class FaqBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'faq';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('faq')
+        return $block
             ->label('FAQ Block')
             ->icon('heroicon-o-question-mark-circle')
             ->schema([

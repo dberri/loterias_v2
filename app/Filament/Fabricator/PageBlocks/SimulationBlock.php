@@ -7,9 +7,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class SimulationBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'simulation';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('simulation')
+        return $block
             ->schema([
                 //
             ]);
