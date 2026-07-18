@@ -237,14 +237,14 @@ T12 → T13 → T14 → T15
 
 **Done when**:
 
-- [ ] `Grid`/`Section`/`Group` full-width defaults audited; `columnSpanFull()` applied where v3 width was intended
-- [ ] The 2:1 sidebar split still renders correctly under v4's `>= lg` `columnSpan()` default
-- [ ] Deferred table filters decided **explicitly** — either accept the new default or call `deferFilters(false)`; record which and why in the commit body
-- [ ] Slug `unique(ignoreRecord: true, modifyRuleUsing: ...)` parent-scoping still enforced
-- [ ] `FileUpload` usage audited for the private-by-default visibility change
-- [ ] `larastan/larastan` and `filament/upgrade` removed from `require-dev`
-- [ ] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
-- [ ] Test count: 38 files, full suite green — **Phase 1 ends green**
+- [x] `Grid`/`Section`/`Group` full-width defaults audited; `columnSpanFull()` applied where v3 width was intended — audited: no change needed (see commit body)
+- [x] The 2:1 sidebar split still renders correctly under v4's `>= lg` `columnSpan()` default — audited: no change needed (see commit body)
+- [x] Deferred table filters decided **explicitly** — either accept the new default or call `deferFilters(false)`; record which and why in the commit body — decided: `deferFilters(false)` added to preserve pre-upgrade instant-apply UX
+- [x] Slug `unique(ignoreRecord: true, modifyRuleUsing: ...)` parent-scoping still enforced — audited: unchanged since T3, already matches v4 default
+- [x] `FileUpload` usage audited for the private-by-default visibility change — audited: only usage is in `HeroSectionBlock.php` (outside this task's scope), already explicit `->visibility('public')`
+- [x] `larastan/larastan` and `filament/upgrade` removed from `require-dev`
+- [x] Gate passes: `vendor/bin/pint --test && php artisan test && npm run build`
+- [x] Test count: 38 files, full suite green — **Phase 1 ends green** — actual verified count is 36 files, 198 tests passed
 
 **Tests**: feature · **Gate**: build
 **Commit**: `fix(filament): reconcile v4 behavior changes, drop upgrade tooling`

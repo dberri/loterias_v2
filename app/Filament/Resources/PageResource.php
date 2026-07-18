@@ -217,6 +217,7 @@ class PageResource extends Resource
                     ->label(__('filament-fabricator::page-resource.labels.layout'))
                     ->options(FilamentFabricator::getLayouts()),
             ])
+            ->deferFilters(false)
             ->recordActions([
                 ViewAction::make()
                     ->visible(config('filament-fabricator.enable-view-page')),
