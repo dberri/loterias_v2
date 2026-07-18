@@ -2,7 +2,6 @@
 
 namespace App\Filament\Fabricator\PageBlocks;
 
-use App\Enums\GamesEnum;
 use App\Models\Draw;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Select;
@@ -22,7 +21,7 @@ class LatestResultsBlock extends PageBlock
                     ->label('Block Title')
                     ->default('Últimos Resultados')
                     ->required(),
-                    
+
                 Select::make('lottery_type')
                     ->label('Lottery Type')
                     ->options([
@@ -33,7 +32,7 @@ class LatestResultsBlock extends PageBlock
                     ])
                     ->default('all')
                     ->required(),
-                    
+
                 TextInput::make('limit')
                     ->label('Number of Results to Show')
                     ->numeric()
@@ -41,15 +40,15 @@ class LatestResultsBlock extends PageBlock
                     ->minValue(1)
                     ->maxValue(20)
                     ->required(),
-                    
+
                 Toggle::make('show_prizes')
                     ->label('Show Prize Information')
                     ->default(true),
-                    
+
                 Toggle::make('show_dates')
                     ->label('Show Draw Dates')
                     ->default(true),
-                    
+
                 Toggle::make('link_to_details')
                     ->label('Link to Individual Draw Pages')
                     ->default(true),
@@ -61,13 +60,13 @@ class LatestResultsBlock extends PageBlock
         $query = Draw::query()
             ->with(['page'])
             ->orderBy('draw_number', 'desc');
-            
+
         if ($data['lottery_type'] !== 'all') {
             $query->where('type', $data['lottery_type']);
         }
-        
+
         $data['results'] = $query->limit($data['limit'] ?? 5)->get();
-        
+
         return $data;
     }
 }

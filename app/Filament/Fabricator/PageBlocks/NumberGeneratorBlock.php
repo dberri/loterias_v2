@@ -20,12 +20,12 @@ class NumberGeneratorBlock extends PageBlock
                     ->label('Block Title')
                     ->default('Gerador de Números')
                     ->required(),
-                    
+
                 TextInput::make('description')
                     ->label('Description')
                     ->default('Gere números aleatórios para suas apostas nas loterias')
                     ->columnSpanFull(),
-                    
+
                 Select::make('default_lottery')
                     ->label('Default Lottery')
                     ->options([
@@ -35,19 +35,19 @@ class NumberGeneratorBlock extends PageBlock
                     ])
                     ->default('megasena')
                     ->required(),
-                    
+
                 Toggle::make('allow_lottery_selection')
                     ->label('Allow Users to Select Lottery Type')
                     ->default(true),
-                    
+
                 Toggle::make('show_statistics')
                     ->label('Show Number Statistics')
                     ->default(true),
-                    
+
                 Toggle::make('save_generated_numbers')
                     ->label('Allow Users to Save Generated Numbers')
                     ->default(false),
-                    
+
                 TextInput::make('primary_color')
                     ->label('Primary Color (Hex)')
                     ->default('#3B82F6')
@@ -81,10 +81,10 @@ class NumberGeneratorBlock extends PageBlock
                 'description' => 'Escolha 5 números de 1 a 80',
             ],
         ];
-        
+
         $data['lottery_configs'] = $lotteryConfigs;
         $data['default_config'] = $lotteryConfigs[$data['default_lottery']];
-        
+
         return $data;
     }
 }

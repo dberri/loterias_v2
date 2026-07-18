@@ -3,7 +3,6 @@
 namespace App\Filament\Fabricator\PageBlocks;
 
 use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
@@ -25,7 +24,7 @@ class RichTextContentBlock extends PageBlock
                         TextInput::make('title')
                             ->label('Section Title (Optional)')
                             ->placeholder('Leave empty for no title'),
-                            
+
                         Select::make('title_level')
                             ->label('Title Level')
                             ->options([
@@ -35,8 +34,8 @@ class RichTextContentBlock extends PageBlock
                                 'h4' => 'H4 (Minor Heading)',
                             ])
                             ->default('h2')
-                            ->visible(fn ($get) => !empty($get('title'))),
-                            
+                            ->visible(fn ($get) => ! empty($get('title'))),
+
                         RichEditor::make('content')
                             ->label('Content')
                             ->required()
@@ -61,7 +60,7 @@ class RichTextContentBlock extends PageBlock
                             ->fileAttachmentsDirectory('uploads/content'),
                     ])
                     ->columns(2),
-                    
+
                 Section::make('Layout & Styling')
                     ->schema([
                         Select::make('container_style')
@@ -74,7 +73,7 @@ class RichTextContentBlock extends PageBlock
                             ])
                             ->default('default')
                             ->required(),
-                            
+
                         Select::make('background_color')
                             ->label('Background Color')
                             ->options([
@@ -86,7 +85,7 @@ class RichTextContentBlock extends PageBlock
                                 'gray' => 'Gray',
                             ])
                             ->visible(fn ($get) => $get('container_style') === 'colored'),
-                            
+
                         Select::make('text_alignment')
                             ->label('Text Alignment')
                             ->options([
@@ -96,7 +95,7 @@ class RichTextContentBlock extends PageBlock
                                 'justify' => 'Justify',
                             ])
                             ->default('left'),
-                            
+
                         Select::make('content_width')
                             ->label('Content Width')
                             ->options([
@@ -105,20 +104,20 @@ class RichTextContentBlock extends PageBlock
                                 'narrow' => 'Narrow (Prose Width)',
                             ])
                             ->default('container'),
-                            
+
                         Grid::make(2)
                             ->schema([
                                 Toggle::make('add_padding')
                                     ->label('Add Padding')
                                     ->default(true),
-                                    
+
                                 Toggle::make('add_margin')
                                     ->label('Add Bottom Margin')
                                     ->default(true),
                             ]),
                     ])
                     ->columns(2),
-                    
+
                 Section::make('SEO & Accessibility')
                     ->schema([
                         TextInput::make('anchor_id')
@@ -126,7 +125,7 @@ class RichTextContentBlock extends PageBlock
                             ->placeholder('section-id')
                             ->helperText('Creates a #section-id anchor for navigation')
                             ->regex('/^[a-z0-9-]+$/'),
-                            
+
                         Select::make('schema_type')
                             ->label('Schema.org Type (Optional)')
                             ->options([
@@ -160,11 +159,11 @@ class RichTextContentBlock extends PageBlock
 
         // Generate CSS classes based on settings
         $containerClasses = ['mb-8'];
-        
-        if (!($data['add_margin'] ?? true)) {
+
+        if (! ($data['add_margin'] ?? true)) {
             $containerClasses = ['mb-0'];
         }
-        
+
         switch ($data['container_style'] ?? 'default') {
             case 'default':
                 $containerClasses[] = 'bg-white rounded-lg shadow-lg';
@@ -180,14 +179,14 @@ class RichTextContentBlock extends PageBlock
                 // No additional classes for transparent
                 break;
         }
-        
+
         if ($data['add_padding'] ?? true) {
             $containerClasses[] = 'p-6';
         }
-        
+
         // Content wrapper classes
         $contentClasses = [];
-        
+
         switch ($data['content_width'] ?? 'container') {
             case 'full':
                 $contentClasses[] = 'w-full';
@@ -200,7 +199,7 @@ class RichTextContentBlock extends PageBlock
                 $contentClasses[] = 'max-w-4xl mx-auto';
                 break;
         }
-        
+
         switch ($data['text_alignment'] ?? 'left') {
             case 'center':
                 $contentClasses[] = 'text-center';
@@ -215,7 +214,7 @@ class RichTextContentBlock extends PageBlock
                 $contentClasses[] = 'text-left';
                 break;
         }
-        
+
         $data['container_classes'] = implode(' ', $containerClasses);
         $data['content_classes'] = implode(' ', $contentClasses);
 

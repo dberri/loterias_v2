@@ -79,7 +79,8 @@ class CreatePagesTest extends TestCase
 
     private function recordingProvider(string $batchId): BatchContentProvider
     {
-        return new class($batchId) implements BatchContentProvider {
+        return new class($batchId) implements BatchContentProvider
+        {
             public array $submittedRequests = [];
 
             public function __construct(private readonly string $batchId) {}
