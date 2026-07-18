@@ -124,9 +124,15 @@ return [
     |
     */
 
+    /*
+     * `?:` rather than env()'s default argument: a key that is PRESENT but
+     * EMPTY (`ALERT_MAIL_TO=` in an .env) returns an empty string, not null, so
+     * the default never fires. That shipped an unsendable blank recipient and a
+     * zero-minute suppression window, which CI caught on its first run.
+     */
     'alerts' => [
-        'recipient' => env('ALERT_MAIL_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
-        'suppression_minutes' => env('ALERT_SUPPRESSION_MINUTES', 10080),
+        'recipient' => env('ALERT_MAIL_TO') ?: env('MAIL_FROM_ADDRESS') ?: 'hello@example.com',
+        'suppression_minutes' => (int) env('ALERT_SUPPRESSION_MINUTES') ?: 10080,
     ],
 
 ];
