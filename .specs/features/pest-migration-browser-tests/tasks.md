@@ -217,12 +217,12 @@ T13 → T14 → T15
 **Requirement**: PEST-01, PEST-09, PEST-13
 
 **Done when**:
-- [ ] `npm install playwright@latest && npx playwright install` documented and run
-- [ ] `phpunit.xml` has a `Browser` testsuite pointing at `tests/Browser`
-- [ ] `.gitignore` contains `tests/Browser/Screenshots`
-- [ ] Smoke test visits `/` and calls `assertNoJavaScriptErrors()`; passes
-- [ ] **Run it twice consecutively — both green** (PEST-09, no manual DB cleanup)
-- [ ] `php artisan test --testsuite=Unit,Feature` still **≥ 198**, and does not execute browser tests
+- [x] `npm install playwright@latest && npx playwright install` documented and run
+- [x] `phpunit.xml` has a `Browser` testsuite pointing at `tests/Browser`
+- [x] `.gitignore` contains `tests/Browser/Screenshots`
+- [x] Smoke test visits `/` and calls `assertNoJavaScriptErrors()`; passes
+- [x] **Run it twice consecutively — both green** (PEST-09, no manual DB cleanup)
+- [x] `php artisan test --testsuite=Unit,Feature` still **≥ 198**, and does not execute browser tests
 
 **Tests**: e2e (smoke) · **Gate**: full
 **Commit**: `test(browser): add pest browser plugin and smoke test`
