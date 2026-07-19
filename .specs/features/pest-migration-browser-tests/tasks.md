@@ -183,9 +183,9 @@ T13 → T14 → T15
 **Requirement**: PEST-03, PEST-04
 
 **Done when**:
-- [ ] All listed files converted
-- [ ] `DrawPageRenderingTest`'s AD-014 JSON-LD presence assertions survive intact — this is the test standing in for a production SEO defect
-- [ ] Gate passes: `php artisan test --testsuite=Unit,Feature` → **≥ 198 passed**
+- [x] All listed files converted
+- [x] `DrawPageRenderingTest`'s AD-014 JSON-LD presence assertions survive intact — this is the test standing in for a production SEO defect
+- [x] Gate passes: `php artisan test --testsuite=Unit,Feature` → **≥ 198 passed**
 
 **Tests**: parity gate · **Gate**: quick
 **Commit**: `test(pest): convert remaining feature tests`
