@@ -296,9 +296,9 @@ T13 → T14 → T15
 **Requirement**: PEST-12
 
 **Done when**:
-- [ ] A browser assertion is deliberately broken; `tests/Browser/Screenshots/` is confirmed to receive a file named for the failing test
-- [ ] The break is reverted; suite green
-- [ ] Result recorded in `validation.md` — **if screenshots do NOT appear, say so plainly and escalate**; do not quietly mark PEST-12 satisfied
+- [x] A browser assertion is deliberately broken; `tests/Browser/Screenshots/` is confirmed to receive a file named for the failing test
+- [x] The break is reverted; suite green
+- [x] Result recorded in `validation.md` — **if screenshots do NOT appear, say so plainly and escalate**; do not quietly mark PEST-12 satisfied
 
 **Tests**: none (empirical verification) · **Gate**: full
 **Commit**: `test(browser): verify failure screenshots are captured`
