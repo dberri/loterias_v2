@@ -200,9 +200,9 @@ T13 → T14 → T15
 **Requirement**: PEST-04
 
 **Done when**:
-- [ ] `grep -rl "extends TestCase" tests/` returns **nothing**
-- [ ] `grep -rln "public function test_" tests/` returns **nothing**
-- [ ] Gate passes: `vendor/bin/pint --dirty && php artisan test` → **≥ 198 passed**
+- [x] `grep -rl "extends TestCase" tests/` returns **nothing**
+- [x] `grep -rln "public function test_" tests/` returns **nothing**
+- [x] Gate passes: `vendor/bin/pint --dirty && php artisan test` → **≥ 198 passed**
 
 **Tests**: parity gate · **Gate**: build
 **Commit**: `test(pest): retire class-based phpunit base`
