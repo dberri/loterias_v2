@@ -330,9 +330,9 @@ T13 → T14 → T15
 **Requirement**: PEST-14
 
 **Done when**:
-- [ ] The stale claim is gone
-- [ ] Documents: `php artisan test`, `--testsuite=Unit,Feature`, `--testsuite=Browser`, and the Playwright install command
-- [ ] Notes that browser tests are local-only by design (PEST-F1)
+- [x] The stale claim is gone
+- [x] Documents: `php artisan test`, `--testsuite=Unit,Feature`, `--testsuite=Browser`, and the Playwright install command
+- [x] Notes that browser tests are local-only by design (PEST-F1)
 
 **Tests**: none · **Gate**: none
 **Commit**: `docs: correct testing section for pest and browser tests`

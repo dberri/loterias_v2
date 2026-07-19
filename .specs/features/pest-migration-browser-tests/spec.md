@@ -166,17 +166,17 @@ Large scope — every dimension resolves to a requirement or an explicit N/A.
 | PEST-02 | P1: Pest 4 runner (baseline parity gate) | Execute | Done |
 | PEST-03 | P1: Pest 4 runner (conversion parity) | Execute | Done |
 | PEST-04 | P1: Pest 4 runner (no class-based tests remain) | Execute | Done |
-| PEST-05 | P1: Admin edit flow (see page in editor) | Design | Pending |
-| PEST-06 | P1: Admin edit flow (edit + save) | Design | Pending |
-| PEST-07 | P1: Admin edit flow (public reflects edit; status intact) | Design | Pending |
-| PEST-08 | P1: Block rendering (all blocks visible) | Design | Pending |
-| PEST-09 | P2: Browser suite (re-runnable) | Design | Pending |
-| PEST-10 | P1: Admin edit flow (auth boundary) | Design | Pending |
-| PEST-11 | P1: Block rendering (no console errors) | Design | Pending |
-| PEST-12 | P2: Browser suite (failure screenshots) | Design | Pending |
-| PEST-13 | P2: Browser suite (isolated; clear missing-browser error) | Design | Pending |
-| PEST-14 | P3: Documentation | Design | Pending |
-| PEST-15 | P2: CI runs Unit+Feature, excludes Browser | Design | Pending |
+| PEST-05 | P1: Admin edit flow (see page in editor) | Execute | Done |
+| PEST-06 | P1: Admin edit flow (edit + save) | Execute | Done |
+| PEST-07 | P1: Admin edit flow (public reflects edit; status intact) | Execute | Done |
+| PEST-08 | P1: Block rendering (all blocks visible) | Execute | Done |
+| PEST-09 | P2: Browser suite (re-runnable) | Execute | Done |
+| PEST-10 | P1: Admin edit flow (auth boundary) | Execute | Done |
+| PEST-11 | P1: Block rendering (no console errors) | Execute | Done |
+| PEST-12 | P2: Browser suite (failure screenshots) | Execute | Done |
+| PEST-13 | P2: Browser suite (isolated; clear missing-browser error) | Execute | Done |
+| PEST-14 | P3: Documentation | Execute | Done |
+| PEST-15 | P2: CI runs Unit+Feature, excludes Browser | Execute | Done |
 | PEST-F1 | Follow-up: browser tests running in CI | Deferred | Open |
 | PEST-F2 | Follow-up: draw-page stylesheet defect (own spec) | Deferred | Open |
 
