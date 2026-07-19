@@ -127,11 +127,21 @@
 - **Date**: 2026-07-18
 - **Status**: active
 
+### AD-016
+- **Decision**: Pest is the test-runner standard for this codebase going forward — every test file uses Pest function syntax, no class-based `Tests\TestCase` subclasses remain under `tests/`. A real-browser `Browser` testsuite (Pest 4 + `pestphp/pest-plugin-browser` + Playwright) is the **required guard for any change to a public-facing template** (Fabricator layouts/page blocks): such changes must be accompanied by a browser test proving the change is actually visible on a real rendered page, not just asserted below the HTTP boundary. The Browser suite is **local-only by design** — it does not run in CI.
+- **Reason**: The suite (198 tests, 854 assertions, entirely PHPUnit-class-based before this feature) sat entirely below the HTTP boundary — models, jobs, Livewire components in isolation. AD-014 is the precedent this feature exists to answer: draw-page JSON-LD was silently absent in a clean environment while all 198 tests stayed green, and the defect shipped to `main`. Writing this feature's own browser tests surfaced a **second, independent instance of the same class of gap**: `App\Models\User` didn't implement Filament's `FilamentUser` contract, so Filament's panel `Authenticate` middleware 403'd every authenticated admin user outside `APP_ENV=local` — invisible to the existing Filament coverage (`PageResourceTest`) because it drives Livewire components directly and never passes through the panel's real HTTP middleware stack. A test one layer below the real boundary missed it a second time; only actually driving `/admin/login` through a real browser found it.
+- **Trade-off**: Browser tests are slow relative to the rest of the suite (Playwright cold-start, real HTTP/DB round-trips) and need a one-time local Playwright install; CI does not run them (see PEST-F1 below), which is an accepted, explicit gap, not an oversight — a browser test that never runs anywhere is not free even if unmeasured, and a test that never runs in CI is not protecting a PR (lesson L-004 from this feature's own tasks.md). Also **discovered empirically**: the Filament page-builder admin editor renders every configured block's full form schema on load, so editing a page seeded with all 10 implemented blocks (`tests/Browser/Fixtures/DrawPageFixture.php`) takes on the order of **three minutes** per visit versus ~1.5s for a blocks-empty page. `tests/Browser/AdminEditsPageTest.php` therefore seeds its own minimal page rather than reusing the shared fixture; `DrawPageFixture` remains correct and necessary for `tests/Browser/DrawPageRendersBlocksTest.php`, where the full block set is exactly what's under test.
+- **Scope**: `pest-migration-browser-tests`; binding on any future feature that adds or edits a Fabricator layout or page block — it should add or extend a `tests/Browser/*Test.php` case, not rely on Livewire/HTTP-layer tests alone.
+- **Lesson**: "One layer below the real thing" is not a fixed distance — AD-014's defect lived at the Blade/stack boundary, this feature's `FilamentUser` gap lived at the HTTP-middleware boundary, one layer further out again. The generalizable guard is PEST-08/PEST-11 (assert every configured block's content is actually visible, assert zero JS console errors) plus PEST-10 (drive the real auth boundary, never `actingAs()`) — not a single fixed assertion.
+- **Date**: 2026-07-19
+- **Status**: active
+
 ## Handoff
 
 - **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`, `framework-upgrade-laravel-13-filament-5` (**done, Verifier PASS**).
 - **`feat/infrastructure-postgres-backups`** → **PR #1** (https://github.com/dberri/loterias_v2/pull/1). **CI green: 178 passed.** Not merged.
 - **`chore/upgrade-laravel-filament`** (this session): all 15 tasks (T1-T15, 3 phases) complete and committed; Verifier PASS with 0 ranked gaps. No PR opened yet. Working tree clean over `app/`. Not merged, not based on the infra branch (forked from `main`/an earlier point — confirm base before opening a PR, since infra's PR #1 is also unmerged).
+- **`test/pest-migration-browser-tests`** (this session): all 15 tasks (T1-T15, 5 phases) complete and committed. Pushed to origin; **CI observed green** (https://github.com/dberri/loterias_v2/actions/runs/29685939957 — "Run test suite" step ran `php artisan test --testsuite=Unit,Feature`). No PR opened yet. Feature-level Verifier dispatch is the immediate next step for this branch (see below).
 
 ### `framework-upgrade-laravel-13-filament-5` — COMPLETE, Verifier PASS
 
@@ -140,6 +150,27 @@ Filament 3→4→5, Livewire 4, Laravel 12→13, PHP 8.5 Sail runtime, in three 
 **AD-015 recorded**: spec.md's Non-Goals table wrongly called the `openai-php/laravel` 0.15→0.20 bump "independent"/"unconstrained by Laravel 13" — it was actually forced (0.15.0 has no release supporting `laravel/framework ^13`). Verified independently by the Verifier against the installed package's own composer constraints.
 
 **One out-of-scope defect surfaced, not fixed (pre-existing, predates this feature's diff range)**: public draw pages never call `FilamentFabricator::getStyles()`/register styles, so `draw-page.blade.php` ships with no `<link rel="stylesheet">` at all. Confirmed via `git show` that this predates T8-T11 (which touched zero `app/Filament/**` files). Candidate for a `seo-draw-page-generation` follow-up bug.
+
+### `pest-migration-browser-tests` — T8-T15 complete, feature-level Verifier pending
+
+Phase 1-2 (T1-T7, prior session): PHPUnit 11→12, Pest 4 + drift install, full conversion of all 37 original test files to Pest function syntax, class-based `Tests\TestCase` retired. Phase 3-5 (T8-T15, this session): `pestphp/pest-plugin-browser` + Playwright installed, a `Browser` testsuite added and excluded from CI, and two real-browser flows landed — the admin-edit → public-render loop (`tests/Browser/AdminEditsPageTest.php`) and all-blocks-render (`tests/Browser/DrawPageRendersBlocksTest.php`, one test per block so a failure names exactly which block broke).
+
+**Baseline, updated**: `php artisan test` → **212 passed, 874 assertions** (198 passed / 854 assertions Unit+Feature — unchanged from the Phase 1-2 baseline — plus 14 passed / 20 assertions across the new Browser suite: 1 smoke, 2 admin-edit, 11 block-render). `php artisan test --testsuite=Unit,Feature` (what CI runs) is unaffected by the Browser suite's existence.
+
+**Empirically verified, not assumed**:
+- PEST-09 (re-runnable, no manual DB cleanup): Browser suite run twice consecutively, both green.
+- PEST-12 (failure screenshots, given open upstream pest#1543): a deliberately broken assertion produced a real PNG in `tests/Browser/Screenshots/` named for the failing test; does not reproduce the upstream bug on `pest-plugin-browser` v4.3.1 here. Full note: `.specs/features/pest-migration-browser-tests/validation.md`.
+- PEST-08's discrimination check: emptied `hero-section.blade.php`, only the `hero-section` block test went red (the other 10 stayed green), confirming the tests actually discriminate; file restored, verified zero diff.
+- T13 (CI excludes Browser): real CI run observed green after push — https://github.com/dberri/loterias_v2/actions/runs/29685939957.
+
+**One genuine, previously-invisible defect found and fixed while writing T10** (recorded as part of AD-016): `App\Models\User` didn't implement Filament's `FilamentUser` contract, so the panel's `Authenticate` middleware 403'd every authenticated user outside `APP_ENV=local`. Fixed by implementing `canAccessPanel(): true` — the standard minimal fix Filament's own interface doc recommends. Invisible to `PageResourceTest` because that test drives Livewire components directly, never through the panel's real HTTP middleware.
+
+**Open follow-ups, logged not fixed (all pre-existing or explicitly deferred by user decision)**:
+- **PEST-F1**: browser tests do not run in CI (too slow for now, explicit user decision) — a real gap, not silently dropped.
+- **PEST-F2**: `draw-page.blade.php` never calls `FilamentFabricator::getStyles()`, so public draw pages ship with no stylesheet at all — pre-existing (predates this feature), gets its own spec.
+- **PEST-F3**: 4 page blocks (`breadcrumb`, `comparison-table`, `simulation`, `timeline`) are registered/selectable in the admin but are unimplemented `//` stub templates — excluded from the block-rendering test with a named reason, not silently dropped.
+
+Full task-by-task detail: `.specs/features/pest-migration-browser-tests/tasks.md`. Feature-level Verifier has not yet run for this batch — that is the immediate next step, per the Execute skill's step 10 (always runs after the last task, author ≠ verifier).
 
 ### `infrastructure-cloud-postgres-backups` — code scope COMPLETE, operator scope OPEN
 
@@ -162,11 +193,14 @@ Executed T1–T10 and T12–T18 (15 of 21 tasks) as two sequential batches plus 
 
 - **INFRA-22** (open, unmapped): AD-008 only partially enforced. Laravel 11+ merges the framework's bundled `config/database.php`, so `sqlite`/`mysql`/`mariadb` stay reachable despite deletion and `DB_CONNECTION=sqlite` still yields a working connection. Same root cause as the PHP 8.5 `PDO::MYSQL_ATTR_SSL_CA` deprecations in test output.
 - **AD-014's root cause is unknown** — the fix avoids `@push`/`@stack` rather than explaining it.
+- **PEST-F1** (open, `pest-migration-browser-tests`): browser tests do not run in CI — local-only by explicit user decision, tracked as an accepted, non-silent gap.
+- **PEST-F2** (open, `pest-migration-browser-tests`): `draw-page.blade.php` never registers Fabricator styles, so public draw pages ship with no stylesheet. Pre-existing; gets its own spec.
+- **PEST-F3** (open, `pest-migration-browser-tests`): 4 registered page blocks (`breadcrumb`, `comparison-table`, `simulation`, `timeline`) are unimplemented `//` stubs, selectable in the admin with no warning that they render nothing.
 - Migration backfill, Scraper fallback branch and the schedule assertion were all closed post-verification.
 
 ### Next step
 
-Two independent branches now sit ready, unmerged: `feat/infrastructure-postgres-backups` (PR #1, CI green) and `chore/upgrade-laravel-filament` (Verifier PASS, no PR yet — open one). Merge PR #1, then **`infrastructure` T11 (cutover)** while it is still cheap. Decide merge order between the two branches before opening the second PR — the upgrade branch changes `composer.json`/`docker-compose.yml`/CI broadly and will conflict with anything infra touches in those files. After both land: `automation-and-scheduling` — it consumes `AlertNotifier` (AD-011) and must **not** rebuild it. `provider-drivers` is independent and can run in parallel; it still carries a blocking research task (Anthropic/Gemini batch + structured-output API shapes are deliberately unasserted).
+Three independent branches now sit ready, unmerged: `feat/infrastructure-postgres-backups` (PR #1, CI green), `chore/upgrade-laravel-filament` (Verifier PASS, no PR yet — open one), and `test/pest-migration-browser-tests` (T8-T15 complete, CI observed green, Verifier not yet dispatched — dispatch it next, then open a PR). Merge PR #1, then **`infrastructure` T11 (cutover)** while it is still cheap. Decide merge order across all three branches before opening PRs for the other two — the upgrade branch changes `composer.json`/`docker-compose.yml`/CI broadly, and the pest-migration branch also changes `composer.json`/`package.json`/`phpunit.xml`/`.github/workflows/ci.yml`, so both will conflict with anything infra touches in those files and likely with each other. After all three land: `automation-and-scheduling` — it consumes `AlertNotifier` (AD-011) and must **not** rebuild it. `provider-drivers` is independent and can run in parallel; it still carries a blocking research task (Anthropic/Gemini batch + structured-output API shapes are deliberately unasserted).
 
 ### Standing lesson from this session
 

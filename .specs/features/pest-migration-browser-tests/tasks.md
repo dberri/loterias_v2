@@ -347,9 +347,9 @@ T13 → T14 → T15
 **Requirement**: PEST-F1, PEST-F2, PEST-F3
 
 **Done when**:
-- [ ] **AD-016** appended: Pest is the runner standard; browser tests are the required guard for changes to public-facing templates; browser suite is local-only (with the accepted-risk rationale)
-- [ ] Handoff section lists **PEST-F1** (CI), **PEST-F2** (stylesheet defect — own spec), **PEST-F3** (4 stub blocks) as open
-- [ ] Baseline updated: new suite totals recorded
+- [x] **AD-016** appended: Pest is the runner standard; browser tests are the required guard for changes to public-facing templates; browser suite is local-only (with the accepted-risk rationale)
+- [x] Handoff section lists **PEST-F1** (CI), **PEST-F2** (stylesheet defect — own spec), **PEST-F3** (4 stub blocks) as open
+- [x] Baseline updated: new suite totals recorded
 
 **Tests**: none · **Gate**: none
 **Commit**: `docs(state): record AD-016 and pest migration follow-ups`
