@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Commands;
+namespace Tests\Feature\Commands\CreateContentTest;
 
 use App\Contracts\BatchContentProvider;
 use App\DTOs\GenerationRequest;
@@ -10,110 +10,103 @@ use App\Enums\PageStatus;
 use App\Models\Draw;
 use App\Services\ContentProviderManager;
 use App\Services\PageAssembler;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
-use Tests\TestCase;
 
-class CreateContentTest extends TestCase
-{
-    use RefreshDatabase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-    public function test_create_content_uses_the_shared_assembler_and_matches_the_expected_blocks(): void
-    {
-        $draw = Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2608)->create();
-        $result = GenerationResult::valid('page_megasena_2608', [
-            'title' => 'Resultado Mega-Sena concurso 2608',
-            'slug' => 'megasena/resultado/2608',
-            'meta_description' => 'Resumo do concurso 2608',
-            'enrichment_blocks' => [
-                [
-                    'type' => 'rich-text',
-                    'html' => '<p>Texto</p>',
-                ],
-                [
-                    'type' => 'faq',
-                    'items' => [
-                        ['question' => 'Pergunta?', 'answer' => '<p>Resposta</p>'],
-                    ],
+test('create content uses the shared assembler and matches the expected blocks', function () {
+    $draw = Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2608)->create();
+    $result = GenerationResult::valid('page_megasena_2608', [
+        'title' => 'Resultado Mega-Sena concurso 2608',
+        'slug' => 'megasena/resultado/2608',
+        'meta_description' => 'Resumo do concurso 2608',
+        'enrichment_blocks' => [
+            [
+                'type' => 'rich-text',
+                'html' => '<p>Texto</p>',
+            ],
+            [
+                'type' => 'faq',
+                'items' => [
+                    ['question' => 'Pergunta?', 'answer' => '<p>Resposta</p>'],
                 ],
             ],
-        ]);
+        ],
+    ]);
 
-        $provider = $this->syncProvider($result);
-        $this->bindProvider($provider);
+    $provider = syncProvider($result);
+    bindProvider($provider);
 
-        $this->artisan('app:create-content', [
-            'game' => GamesEnum::MEGA_SENA->value,
-            'draw_number' => 2608,
-        ])->assertExitCode(0);
+    $this->artisan('app:create-content', [
+        'game' => GamesEnum::MEGA_SENA->value,
+        'draw_number' => 2608,
+    ])->assertExitCode(0);
 
-        $expected = (new PageAssembler)->assemble($draw->fresh(), $result);
-        $page = $draw->fresh()->page;
+    $expected = (new PageAssembler)->assemble($draw->fresh(), $result);
+    $page = $draw->fresh()->page;
 
-        $this->assertSame($expected->blocks, $page->blocks);
-        $this->assertSame($expected->status, $page->status);
-        $this->assertSame('openai', $page->provider);
-        $this->assertCount(6, $page->blocks);
-        $this->assertSame('hero-section', $page->blocks[0]['type']);
-        $this->assertSame('related-links', $page->blocks[5]['type']);
-    }
+    expect($page->blocks)->toBe($expected->blocks);
+    expect($page->status)->toBe($expected->status);
+    expect($page->provider)->toBe('openai');
+    expect($page->blocks)->toHaveCount(6);
+    expect($page->blocks[0]['type'])->toBe('hero-section');
+    expect($page->blocks[5]['type'])->toBe('related-links');
+});
 
-    public function test_create_content_marks_invalid_responses_failed_and_re_runnable(): void
+test('create content marks invalid responses failed and re runnable', function () {
+    $draw = Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2608)->create();
+    $result = GenerationResult::invalid('page_megasena_2608', ['title' => ''], 'Missing required title.');
+
+    $provider = syncProvider($result);
+    bindProvider($provider);
+
+    $this->artisan('app:create-content', [
+        'game' => GamesEnum::MEGA_SENA->value,
+        'draw_number' => 2608,
+    ])->assertExitCode(0);
+
+    $page = $draw->fresh()->page;
+    expect($page->status)->toBe(PageStatus::Failed);
+    expect($page->blocks)->toBe([]);
+    expect($page->provider)->toBe('openai');
+
+    $page->update(['status' => PageStatus::Generated->value]);
+
+    expect($page->fresh()->status)->toBe(PageStatus::Generated);
+});
+
+function bindProvider(BatchContentProvider $provider): void
+{
+    $manager = Mockery::mock(ContentProviderManager::class);
+    $manager->shouldReceive('driver')->with('openai')->andReturn($provider);
+
+    app()->instance(ContentProviderManager::class, $manager);
+}
+
+function syncProvider(GenerationResult $result): BatchContentProvider
+{
+    return new class($result) implements BatchContentProvider
     {
-        $draw = Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2608)->create();
-        $result = GenerationResult::invalid('page_megasena_2608', ['title' => ''], 'Missing required title.');
+        public function __construct(private readonly GenerationResult $result) {}
 
-        $provider = $this->syncProvider($result);
-        $this->bindProvider($provider);
-
-        $this->artisan('app:create-content', [
-            'game' => GamesEnum::MEGA_SENA->value,
-            'draw_number' => 2608,
-        ])->assertExitCode(0);
-
-        $page = $draw->fresh()->page;
-        $this->assertSame(PageStatus::Failed, $page->status);
-        $this->assertSame([], $page->blocks);
-        $this->assertSame('openai', $page->provider);
-
-        $page->update(['status' => PageStatus::Generated->value]);
-
-        $this->assertSame(PageStatus::Generated, $page->fresh()->status);
-    }
-
-    private function bindProvider(BatchContentProvider $provider): void
-    {
-        $manager = Mockery::mock(ContentProviderManager::class);
-        $manager->shouldReceive('driver')->with('openai')->andReturn($provider);
-
-        $this->app->instance(ContentProviderManager::class, $manager);
-    }
-
-    private function syncProvider(GenerationResult $result): BatchContentProvider
-    {
-        return new class($result) implements BatchContentProvider
+        public function submitBatch(iterable $requests): string
         {
-            public function __construct(private readonly GenerationResult $result) {}
+            return 'batch-123';
+        }
 
-            public function submitBatch(iterable $requests): string
-            {
-                return 'batch-123';
-            }
+        public function pollBatch(string $id): \App\DTOs\BatchStatus
+        {
+            return \App\DTOs\BatchStatus::Completed;
+        }
 
-            public function pollBatch(string $id): \App\DTOs\BatchStatus
-            {
-                return \App\DTOs\BatchStatus::Completed;
-            }
+        public function fetchResults(string $id): iterable
+        {
+            return [];
+        }
 
-            public function fetchResults(string $id): iterable
-            {
-                return [];
-            }
-
-            public function generateOne(GenerationRequest $request): GenerationResult
-            {
-                return $this->result;
-            }
-        };
-    }
+        public function generateOne(GenerationRequest $request): GenerationResult
+        {
+            return $this->result;
+        }
+    };
 }

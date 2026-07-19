@@ -125,28 +125,28 @@ Every ambiguity is resolved or recorded here — nothing is left silently unclea
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| INFRA-01 | P1: Three process types on Laravel Cloud (web, worker, scheduler) | Design | Pending |
-| INFRA-02 | P1: Queue worker consumes jobs; failures land in `failed_jobs` | Design | Pending |
-| INFRA-03 | P1: Scheduler proven to fire a task unattended | Design | Pending |
-| INFRA-04 | P1: Publish gate verified in the deployed environment (200/404) | Design | Pending |
-| INFRA-05 | P1: Migrations run against production Postgres on deploy | Design | Pending |
-| INFRA-06 | P2: CI runs the suite against Postgres | Design | Pending |
-| INFRA-07 | P2: Local Sail provisions Postgres | Design | Pending |
-| INFRA-08 | P2: All migrations succeed on a clean Postgres DB | Design | Pending |
-| INFRA-09 | P2: JSON paths (`raw_data`, `blocks`) behave identically on Postgres | Design | Pending |
-| INFRA-10 | P2: Engine-specific SQL audited, replaced or documented | Design | Pending |
-| INFRA-11 | P2: Cutover — `draws` row-count parity + sampled deep `raw_data` comparison | Design | Pending |
-| INFRA-21 | P2: NUL bytes in `raw_data` (415/2608 real payloads) persist to Postgres without error, on backfill **and** on future scrapes | Design | Pending |
-| INFRA-22 | P2: Retired engines are genuinely unreachable, not merely absent from app config (framework config merge leaves `sqlite`/`mysql`/`mariadb` live) | Tasks | Open |
-| INFRA-12 | P3: Nightly portable export of `draws` + `pages` with manifest | Design | Pending |
-| INFRA-13 | P3: Manifest checksum validation; invalid export alerts | Design | Pending |
-| INFRA-14 | P3: Export failure alerts (no silent backup failure) | Design | Pending |
-| INFRA-15 | P3: Restore reconstructs both tables; sampled pages render | Design | Pending |
-| INFRA-16 | P3: Restore executed for real once, timed, within 8h RTO | Design | Pending |
-| INFRA-17 | P3: Retention — 35 daily, 12 monthly | Design | Pending |
-| INFRA-18 | Edge case — export works before `pages` exists (independent deployability) | Design | Pending |
-| INFRA-19 | Edge case — empty `pages` exports a valid zero-row artifact | Design | Pending |
-| INFRA-20 | Edge case — cutover validation failure triggers documented rollback | Design | Pending |
+| INFRA-01 | P1: Three process types on Laravel Cloud (web, worker, scheduler) | Design | Deferred — operator-gated (needs Laravel Cloud) |
+| INFRA-02 | P1: Queue worker consumes jobs; failures land in `failed_jobs` | Design | Deferred — operator-gated (needs Laravel Cloud) |
+| INFRA-03 | P1: Scheduler proven to fire a task unattended | Design | Deferred — operator-gated (needs Laravel Cloud) |
+| INFRA-04 | P1: Publish gate verified in the deployed environment (200/404) | Design | Deferred — operator-gated (needs Laravel Cloud) |
+| INFRA-05 | P1: Migrations run against production Postgres on deploy | Design | Deferred — operator-gated (needs Laravel Cloud) |
+| INFRA-06 | P2: CI runs the suite against Postgres | Execute | Done — Gap 1 (never-executed workflow) resolved: `feat/infrastructure-postgres-backups` pushed, CI observed green (e.g. run 29651679467) |
+| INFRA-07 | P2: Local Sail provisions Postgres | Execute | Done |
+| INFRA-08 | P2: All migrations succeed on a clean Postgres DB | Execute | Done (manual evidence, not a repeatable test — Gap 4) |
+| INFRA-09 | P2: JSON paths (`raw_data`, `blocks`) behave identically on Postgres | Execute | Done |
+| INFRA-10 | P2: Engine-specific SQL audited, replaced or documented | Execute | Done |
+| INFRA-11 | P2: Cutover — `draws` row-count parity + sampled deep `raw_data` comparison | Design | Deferred — operator-gated (needs real production cutover, T11) |
+| INFRA-21 | P2: NUL bytes in `raw_data` (415/2608 real payloads) persist to Postgres without error, on backfill **and** on future scrapes | Execute | Done — strongest-covered requirement in the feature |
+| INFRA-22 | P2: Retired engines are genuinely unreachable, not merely absent from app config (framework config merge leaves `sqlite`/`mysql`/`mariadb` live) | Tasks | Open — documented, unmapped (AD-008 amendment) |
+| INFRA-12 | P3: Nightly portable export of `draws` + `pages` with manifest | Execute | Done (cron expression is a spec-precision gap — Gap 5) |
+| INFRA-13 | P3: Manifest checksum validation; invalid export alerts | Execute | Done |
+| INFRA-14 | P3: Export failure alerts (no silent backup failure) | Execute | Done |
+| INFRA-15 | P3: Restore reconstructs both tables; sampled pages render | Execute | Done — Gap 2 (no render assertion) resolved: `RestoreCorpusTest.php:174-192` |
+| INFRA-16 | P3: Restore executed for real once, timed, within 8h RTO | Design | Deferred — operator-gated (needs a real restore drill, T19) |
+| INFRA-17 | P3: Retention — 35 daily, 12 monthly | Execute | Done — Gap 3 (monthly tier unreachable) resolved: `ExportCorpus::promoteToMonthly()`, 7 tests in `ExportCorpusRetentionTest.php` |
+| INFRA-18 | Edge case — export works before `pages` exists (independent deployability) | Execute | Done |
+| INFRA-19 | Edge case — empty `pages` exports a valid zero-row artifact | Execute | Done |
+| INFRA-20 | Edge case — cutover validation failure triggers documented rollback | Design | Deferred — operator-gated (needs real production cutover, T11) |
 
 **ID format:** `INFRA-NN`
 
@@ -161,4 +161,4 @@ Every ambiguity is resolved or recorded here — nothing is left silently unclea
 - [ ] `automation-and-scheduling`'s scheduled sweeps run unattended in production — the infrastructure dependency is discharged
 - [ ] The full test suite is green against PostgreSQL in CI, and no environment runs a different engine
 - [ ] The database can be dropped and restored from an export artifact, and this has been **done**, not merely written down
-- [ ] A backup that fails sends an email — no backup ever fails silently
+- [x] A backup that fails sends an email — no backup ever fails silently

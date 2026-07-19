@@ -4,7 +4,7 @@
 **Source**: `docs/superpowers/specs/2026-07-11-infrastructure-cloud-postgres-backups-design.md`
 **Depends on**: `seo-draw-page-generation` (soft — only the `pages` backup target)
 **Blocks**: `automation-and-scheduling`
-**Status**: Approved architecture, with one blocking verification task (dialect audit — see Risks)
+**Status**: Implemented — dialect audit complete (`dialect-audit.md`), code-only scope done (see `tasks.md`/`STATE.md`); operator-gated production tasks (T11/T19/T20/T21) remain open
 
 ---
 
