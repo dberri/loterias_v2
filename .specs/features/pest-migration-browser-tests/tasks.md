@@ -313,9 +313,9 @@ T13 → T14 → T15
 **Requirement**: PEST-13, PEST-15
 
 **Done when**:
-- [ ] CI runs `php artisan test --testsuite=Unit,Feature`
-- [ ] No Node/Playwright/`ext-sockets` step added — CI must not need them
-- [ ] **A real CI run is observed green and its URL cited** (lesson L-004 — a workflow file is not CI until a run passes)
+- [x] CI runs `php artisan test --testsuite=Unit,Feature`
+- [x] No Node/Playwright/`ext-sockets` step added — CI must not need them
+- [x] **A real CI run is observed green and its URL cited** (lesson L-004 — a workflow file is not CI until a run passes)
 
 **Tests**: none · **Gate**: build
 **Commit**: `ci: run unit and feature suites, exclude browser`
