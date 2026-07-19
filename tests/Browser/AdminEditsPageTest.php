@@ -61,7 +61,13 @@ test('an admin can edit a page title through the real editor and the public page
     // check the raw rendered HTML, which does cover <title>, and are the
     // faithful reading of PEST-07's "rendered page SHALL contain/SHALL NOT
     // contain" wording. Asserted separately per lesson L-005.
+    //
+    // Status is asserted explicitly (spec.md edge case: "the test SHALL
+    // assert 200 explicitly rather than asserting on an error page's body").
+    // pest-plugin-browser has no assertStatus(); the Navigation Timing API
+    // exposes the real HTTP response status synchronously in the browser.
     visit($publicUrl)
+        ->assertScript('performance.getEntriesByType("navigation")[0].responseStatus', 200)
         ->assertSourceHas($newTitle)
         ->assertSourceMissing($originalTitle);
 
