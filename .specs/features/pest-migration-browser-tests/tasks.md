@@ -277,11 +277,11 @@ T13 → T14 → T15
 **Requirement**: PEST-08, PEST-11
 
 **Done when**:
-- [ ] Each of the 10 markers asserted **individually**, so a failure names the missing block (PEST-08 AC2) — not one bulk assertion
-- [ ] `assertNoJavaScriptErrors()` passes (PEST-11)
-- [ ] **Discrimination check performed and recorded**: empty one block's Blade template, confirm the test goes red naming that block, then restore. A test that survives this is not testing anything.
-- [ ] If the missing-stylesheet defect (PEST-F2) causes noise, record it — do **not** weaken the test to accommodate it
-- [ ] Gate passes: `php artisan test`
+- [x] Each of the 10 markers asserted **individually**, so a failure names the missing block (PEST-08 AC2) — not one bulk assertion
+- [x] `assertNoJavaScriptErrors()` passes (PEST-11)
+- [x] **Discrimination check performed and recorded**: empty one block's Blade template, confirm the test goes red naming that block, then restore. A test that survives this is not testing anything.
+- [x] If the missing-stylesheet defect (PEST-F2) causes noise, record it — do **not** weaken the test to accommodate it
+- [x] Gate passes: `php artisan test`
 
 **Tests**: e2e · **Gate**: full
 **Commit**: `test(browser): assert all implemented blocks render`
