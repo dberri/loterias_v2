@@ -1,115 +1,103 @@
 <?php
 
-namespace Tests\Unit\PageBlocks;
+namespace Tests\Unit\PageBlocks\IndividualDrawDetailsBlockTest;
 
 use App\Enums\GamesEnum;
 use App\Filament\Fabricator\PageBlocks\IndividualDrawDetailsBlock;
 use App\Models\Draw;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class IndividualDrawDetailsBlockTest extends TestCase
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
+function gameProvider(): array
 {
-    use RefreshDatabase;
-
-    public static function gameProvider(): array
-    {
-        return [
-            'mega-sena' => [GamesEnum::MEGA_SENA, 2608],
-            'lotofacil' => [GamesEnum::LOTOFACIL, 1],
-            'quina' => [GamesEnum::QUINA, 1],
-        ];
-    }
-
-    #[\PHPUnit\Framework\Attributes\DataProvider('gameProvider')]
-    public function test_mutate_data_returns_every_faixa_with_correct_values_for_each_game(
-        GamesEnum $game,
-        int $drawNumber,
-    ): void {
-        $draw = Draw::factory()->fixture($game->value, $drawNumber)->create();
-
-        $data = IndividualDrawDetailsBlock::mutateData([
-            'draw_id' => $draw->id,
-            'show_prize_breakdown' => true,
-            'show_winners_by_tier' => true,
-            'show_statistics' => true,
-        ]);
-
-        $expectedTiers = $draw->raw_data['listaRateioPremio'] ?? [];
-        $this->assertSame(count($expectedTiers), count($data['prize_tiers']));
-
-        foreach ($expectedTiers as $index => $tier) {
-            $this->assertSame($tier['faixa'], $data['prize_tiers'][$index]['faixa']);
-            $this->assertSame($tier['numeroDeGanhadores'], $data['prize_tiers'][$index]['numeroDeGanhadores']);
-            $this->assertSame($tier['valorPremio'], $data['prize_tiers'][$index]['valorPremio']);
-        }
-
-        $this->assertSame($draw->location, $data['location']);
-        $this->assertSame($draw->is_accumulated, $data['is_accumulated']);
-        $this->assertSame($draw->next_draw_estimate, $data['next_draw_estimate']);
-        $this->assertSame(count($draw->raw_data['listaMunicipioUFGanhadores'] ?? []), count($data['winner_cities']));
-    }
-
-    public function test_accumulated_draw_renders_without_error_and_keeps_zero_winner_tier(): void
-    {
-        $draw = Draw::factory()->fixture(GamesEnum::LOTOFACIL->value, 10)->create();
-
-        $data = IndividualDrawDetailsBlock::mutateData([
-            'draw_id' => $draw->id,
-            'show_prize_breakdown' => true,
-            'show_winners_by_tier' => true,
-            'show_statistics' => true,
-        ]);
-
-        $this->assertTrue($draw->is_accumulated);
-        $this->assertSame(0, $data['main_prize_winners']);
-        $this->assertIsString($data['formatted_main_prize']);
-        $this->assertSame(0, $data['prize_tiers'][0]['numeroDeGanhadores']);
-    }
-
-    public function test_draw_with_winners_and_winner_cities_renders_both(): void
-    {
-        $draw = Draw::factory()->fixture(GamesEnum::LOTOFACIL->value, 1)->create();
-
-        $data = IndividualDrawDetailsBlock::mutateData([
-            'draw_id' => $draw->id,
-            'show_prize_breakdown' => true,
-            'show_winners_by_tier' => true,
-            'show_statistics' => true,
-        ]);
-
-        $this->assertNotEmpty($data['winner_cities']);
-        $this->assertGreaterThan(0, $data['main_prize_winners']);
-    }
-
-    public function test_contradictory_ai_payload_does_not_change_output(): void
-    {
-        $draw = Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2608)->create();
-
-        $data = IndividualDrawDetailsBlock::mutateData([
-            'draw_id' => $draw->id,
-            'show_prize_breakdown' => true,
-            'show_winners_by_tier' => true,
-            'show_statistics' => true,
-            'location' => 'Nowhere',
-            'is_accumulated' => false,
-            'next_draw_estimate' => 1,
-            'prize_tiers' => [
-                [
-                    'faixa' => 1,
-                    'numeroDeGanhadores' => 999,
-                    'valorPremio' => 1,
-                ],
-            ],
-            'winner_cities' => [
-                ['municipio' => 'Foo', 'uf' => 'ZZ', 'ganhadores' => 1],
-            ],
-        ]);
-
-        $this->assertSame($draw->location, $data['location']);
-        $this->assertSame($draw->is_accumulated, $data['is_accumulated']);
-        $this->assertSame($draw->next_draw_estimate, $data['next_draw_estimate']);
-        $this->assertSame($draw->raw_data['listaRateioPremio'][0]['numeroDeGanhadores'], $data['prize_tiers'][0]['numeroDeGanhadores']);
-        $this->assertSame(count($draw->raw_data['listaMunicipioUFGanhadores'] ?? []), count($data['winner_cities']));
-    }
+    return [
+        'mega-sena' => [GamesEnum::MEGA_SENA, 2608],
+        'lotofacil' => [GamesEnum::LOTOFACIL, 1],
+        'quina' => [GamesEnum::QUINA, 1],
+    ];
 }
+
+test('mutate data returns every faixa with correct values for each game', function (GamesEnum $game, int $drawNumber) {
+    $draw = Draw::factory()->fixture($game->value, $drawNumber)->create();
+
+    $data = IndividualDrawDetailsBlock::mutateData([
+        'draw_id' => $draw->id,
+        'show_prize_breakdown' => true,
+        'show_winners_by_tier' => true,
+        'show_statistics' => true,
+    ]);
+
+    $expectedTiers = $draw->raw_data['listaRateioPremio'] ?? [];
+    expect(count($data['prize_tiers']))->toBe(count($expectedTiers));
+
+    foreach ($expectedTiers as $index => $tier) {
+        expect($data['prize_tiers'][$index]['faixa'])->toBe($tier['faixa']);
+        expect($data['prize_tiers'][$index]['numeroDeGanhadores'])->toBe($tier['numeroDeGanhadores']);
+        expect($data['prize_tiers'][$index]['valorPremio'])->toBe($tier['valorPremio']);
+    }
+
+    expect($data['location'])->toBe($draw->location);
+    expect($data['is_accumulated'])->toBe($draw->is_accumulated);
+    expect($data['next_draw_estimate'])->toBe($draw->next_draw_estimate);
+    expect(count($data['winner_cities']))->toBe(count($draw->raw_data['listaMunicipioUFGanhadores'] ?? []));
+})->with(gameProvider());
+
+test('accumulated draw renders without error and keeps zero winner tier', function () {
+    $draw = Draw::factory()->fixture(GamesEnum::LOTOFACIL->value, 10)->create();
+
+    $data = IndividualDrawDetailsBlock::mutateData([
+        'draw_id' => $draw->id,
+        'show_prize_breakdown' => true,
+        'show_winners_by_tier' => true,
+        'show_statistics' => true,
+    ]);
+
+    expect($draw->is_accumulated)->toBeTrue();
+    expect($data['main_prize_winners'])->toBe(0);
+    expect($data['formatted_main_prize'])->toBeString();
+    expect($data['prize_tiers'][0]['numeroDeGanhadores'])->toBe(0);
+});
+
+test('draw with winners and winner cities renders both', function () {
+    $draw = Draw::factory()->fixture(GamesEnum::LOTOFACIL->value, 1)->create();
+
+    $data = IndividualDrawDetailsBlock::mutateData([
+        'draw_id' => $draw->id,
+        'show_prize_breakdown' => true,
+        'show_winners_by_tier' => true,
+        'show_statistics' => true,
+    ]);
+
+    expect($data['winner_cities'])->not->toBeEmpty();
+    expect($data['main_prize_winners'])->toBeGreaterThan(0);
+});
+
+test('contradictory ai payload does not change output', function () {
+    $draw = Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2608)->create();
+
+    $data = IndividualDrawDetailsBlock::mutateData([
+        'draw_id' => $draw->id,
+        'show_prize_breakdown' => true,
+        'show_winners_by_tier' => true,
+        'show_statistics' => true,
+        'location' => 'Nowhere',
+        'is_accumulated' => false,
+        'next_draw_estimate' => 1,
+        'prize_tiers' => [
+            [
+                'faixa' => 1,
+                'numeroDeGanhadores' => 999,
+                'valorPremio' => 1,
+            ],
+        ],
+        'winner_cities' => [
+            ['municipio' => 'Foo', 'uf' => 'ZZ', 'ganhadores' => 1],
+        ],
+    ]);
+
+    expect($data['location'])->toBe($draw->location);
+    expect($data['is_accumulated'])->toBe($draw->is_accumulated);
+    expect($data['next_draw_estimate'])->toBe($draw->next_draw_estimate);
+    expect($data['prize_tiers'][0]['numeroDeGanhadores'])->toBe($draw->raw_data['listaRateioPremio'][0]['numeroDeGanhadores']);
+    expect(count($data['winner_cities']))->toBe(count($draw->raw_data['listaMunicipioUFGanhadores'] ?? []));
+});
