@@ -141,7 +141,7 @@
 - **Features with Specify + Design complete**: `seo-draw-page-generation` (done), `infrastructure-cloud-postgres-backups` (code scope done), `provider-drivers`, `automation-and-scheduling`, `framework-upgrade-laravel-13-filament-5` (**done, Verifier PASS**).
 - **`feat/infrastructure-postgres-backups`** → **PR #1** (https://github.com/dberri/loterias_v2/pull/1). **CI green: 178 passed.** Not merged.
 - **`chore/upgrade-laravel-filament`** (this session): all 15 tasks (T1-T15, 3 phases) complete and committed; Verifier PASS with 0 ranked gaps. No PR opened yet. Working tree clean over `app/`. Not merged, not based on the infra branch (forked from `main`/an earlier point — confirm base before opening a PR, since infra's PR #1 is also unmerged).
-- **`test/pest-migration-browser-tests`** (this session): all 15 tasks (T1-T15, 5 phases) complete and committed. Pushed to origin; **CI observed green** (https://github.com/dberri/loterias_v2/actions/runs/29685939957 — "Run test suite" step ran `php artisan test --testsuite=Unit,Feature`). No PR opened yet. Feature-level Verifier dispatch is the immediate next step for this branch (see below).
+- **`test/pest-migration-browser-tests`** (this session): all 15 tasks (T1-T15, 5 phases) complete and committed. Pushed to origin; **CI observed green** (https://github.com/dberri/loterias_v2/actions/runs/29685939957 — "Run test suite" step ran `php artisan test --testsuite=Unit,Feature`). **Feature-level Verifier PASS**, one gap found and closed. No PR opened yet.
 
 ### `framework-upgrade-laravel-13-filament-5` — COMPLETE, Verifier PASS
 
@@ -151,11 +151,13 @@ Filament 3→4→5, Livewire 4, Laravel 12→13, PHP 8.5 Sail runtime, in three 
 
 **One out-of-scope defect surfaced, not fixed (pre-existing, predates this feature's diff range)**: public draw pages never call `FilamentFabricator::getStyles()`/register styles, so `draw-page.blade.php` ships with no `<link rel="stylesheet">` at all. Confirmed via `git show` that this predates T8-T11 (which touched zero `app/Filament/**` files). Candidate for a `seo-draw-page-generation` follow-up bug.
 
-### `pest-migration-browser-tests` — T8-T15 complete, feature-level Verifier pending
+### `pest-migration-browser-tests` — COMPLETE, Verifier PASS
 
 Phase 1-2 (T1-T7, prior session): PHPUnit 11→12, Pest 4 + drift install, full conversion of all 37 original test files to Pest function syntax, class-based `Tests\TestCase` retired. Phase 3-5 (T8-T15, this session): `pestphp/pest-plugin-browser` + Playwright installed, a `Browser` testsuite added and excluded from CI, and two real-browser flows landed — the admin-edit → public-render loop (`tests/Browser/AdminEditsPageTest.php`) and all-blocks-render (`tests/Browser/DrawPageRendersBlocksTest.php`, one test per block so a failure names exactly which block broke).
 
-**Baseline, updated**: `php artisan test` → **212 passed, 874 assertions** (198 passed / 854 assertions Unit+Feature — unchanged from the Phase 1-2 baseline — plus 14 passed / 20 assertions across the new Browser suite: 1 smoke, 2 admin-edit, 11 block-render). `php artisan test --testsuite=Unit,Feature` (what CI runs) is unaffected by the Browser suite's existence.
+**Feature-level Verifier ran and returned PASS** (fresh sub-agent, author ≠ verifier; independently re-derived every AC from spec.md and re-ran every gate itself rather than trusting tasks.md's checked boxes). One non-blocking spec-precision gap was found (PEST-07/PEST-08's literal "response SHALL be 200" wording had no explicit `assertStatus(200)` — content assertions covered the same failure mode in practice but not to the letter) and was closed immediately after: `pest-plugin-browser` has no `assertStatus()`/`assertOk()`, so an explicit Navigation-Timing-API status check (`assertScript('performance.getEntriesByType("navigation")[0].responseStatus', 200)`) was added to every public-page visit, verified to genuinely discriminate against a real 404 before rollout. Full report: `.specs/features/pest-migration-browser-tests/validation.md`.
+
+**Baseline, updated**: `php artisan test` → **212 passed, 886 assertions** (198 passed / 854 assertions Unit+Feature — unchanged from the Phase 1-2 baseline — plus 14 passed / 32 assertions across the new Browser suite: 1 smoke, 2 admin-edit, 11 block-render). `php artisan test --testsuite=Unit,Feature` (what CI runs) is unaffected by the Browser suite's existence.
 
 **Empirically verified, not assumed**:
 - PEST-09 (re-runnable, no manual DB cleanup): Browser suite run twice consecutively, both green.
@@ -170,7 +172,7 @@ Phase 1-2 (T1-T7, prior session): PHPUnit 11→12, Pest 4 + drift install, full 
 - **PEST-F2**: `draw-page.blade.php` never calls `FilamentFabricator::getStyles()`, so public draw pages ship with no stylesheet at all — pre-existing (predates this feature), gets its own spec.
 - **PEST-F3**: 4 page blocks (`breadcrumb`, `comparison-table`, `simulation`, `timeline`) are registered/selectable in the admin but are unimplemented `//` stub templates — excluded from the block-rendering test with a named reason, not silently dropped.
 
-Full task-by-task detail: `.specs/features/pest-migration-browser-tests/tasks.md`. Feature-level Verifier has not yet run for this batch — that is the immediate next step, per the Execute skill's step 10 (always runs after the last task, author ≠ verifier).
+Full task-by-task detail: `.specs/features/pest-migration-browser-tests/tasks.md`. All 15 tasks complete, Verifier PASS, gap closed. Not merged; no PR opened yet.
 
 ### `infrastructure-cloud-postgres-backups` — code scope COMPLETE, operator scope OPEN
 
