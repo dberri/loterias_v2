@@ -256,13 +256,13 @@ T13 → T14 → T15
 **Requirement**: PEST-05, PEST-06, PEST-07, PEST-10
 
 **Done when**:
-- [ ] Unauthenticated `visit('/admin/pages')` asserts redirect to login and **does not** render the editor (PEST-10 AC1)
-- [ ] Logs in through the **real `/admin/login` form** — `actingAs()` is forbidden here, it would bypass the boundary under test
-- [ ] Editor displays the page's existing title (PEST-05)
-- [ ] Title changed to a distinct generated value, saved, confirmation asserted (PEST-06)
-- [ ] Public URL asserts **new title present AND old title absent** — both, separately (lesson L-005)
-- [ ] Page `status` re-read from DB and still `Published` (PEST-07 AC6)
-- [ ] Gate passes: `php artisan test`
+- [x] Unauthenticated `visit('/admin/pages')` asserts redirect to login and **does not** render the editor (PEST-10 AC1)
+- [x] Logs in through the **real `/admin/login` form** — `actingAs()` is forbidden here, it would bypass the boundary under test
+- [x] Editor displays the page's existing title (PEST-05)
+- [x] Title changed to a distinct generated value, saved, confirmation asserted (PEST-06)
+- [x] Public URL asserts **new title present AND old title absent** — both, separately (lesson L-005)
+- [x] Page `status` re-read from DB and still `Published` (PEST-07 AC6)
+- [x] Gate passes: `php artisan test`
 
 **Tests**: e2e · **Gate**: full
 **Commit**: `test(browser): assert admin page edit reaches the public page`
