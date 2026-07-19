@@ -238,10 +238,10 @@ T13 → T14 → T15
 **Requirement**: PEST-07, PEST-08
 
 **Done when**:
-- [ ] Returns `draw`, `page`, and a `markers` map of block type → unique string
-- [ ] Page status is `PageStatus::Published` (AD-006 — otherwise the public route 404s)
-- [ ] Covers only the **10 implemented** blocks; the 4 stub blocks are excluded with an inline comment naming PEST-F3
-- [ ] Consumed by a passing assertion in the smoke test or a temporary check
+- [x] Returns `draw`, `page`, and a `markers` map of block type → unique string
+- [x] Page status is `PageStatus::Published` (AD-006 — otherwise the public route 404s)
+- [x] Covers only the **10 implemented** blocks; the 4 stub blocks are excluded with an inline comment naming PEST-F3
+- [x] Consumed by a passing assertion in the smoke test or a temporary check
 
 **Tests**: integration (via consumers) · **Gate**: full
 **Commit**: `test(browser): add published draw-page fixture`
