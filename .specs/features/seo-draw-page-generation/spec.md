@@ -9,10 +9,10 @@ Scraped draws (`Draw::raw_data`) currently produce, at best, a `DrawPage` row wh
 
 ## Goals
 
-- [ ] Every draw without a page can be turned into a batch-generated, fact-accurate, SEO-structured `Page` reachable at `/{game}/resultado/{concurso}` once published
-- [ ] Drawn numbers, prizes, and winner counts displayed on a draw page always trace back to `Draw::raw_data`, never to AI output
-- [ ] A single page model (Fabricator `Page`) replaces the separate `DrawPage` table, so routing/rendering/admin editing come for free
-- [ ] The LLM provider is swappable (OpenAI ships in v1) without touching pipeline code
+- [x] Every draw without a page can be turned into a batch-generated, fact-accurate, SEO-structured `Page` reachable at `/{game}/resultado/{concurso}` once published
+- [x] Drawn numbers, prizes, and winner counts displayed on a draw page always trace back to `Draw::raw_data`, never to AI output
+- [x] A single page model (Fabricator `Page`) replaces the separate `DrawPage` table, so routing/rendering/admin editing come for free
+- [x] The LLM provider is swappable (OpenAI ships in v1) without touching pipeline code
 
 ## Out of Scope
 
@@ -112,22 +112,22 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ------------------------- | ------ | ------- |
-| DRAWPAGE-01 | P1: Batch-generated page — batch submission | Design | Pending |
-| DRAWPAGE-02 | P1: Batch-generated page — successful assembly | Design | Pending |
-| DRAWPAGE-03 | P1: Batch-generated page — validation failure handling | Design | Pending |
-| DRAWPAGE-04 | P1: Batch-generated page — facts sourced live, never from AI | Design | Pending |
-| DRAWPAGE-05 | P1: Batch-generated page — publish gate / public routing | Design | Pending |
-| DRAWPAGE-06 | P1: Batch-generated page — JSON-LD | Design | Pending |
-| DRAWPAGE-07 | P1: Batch-generated page — batch polling/completion | Design | Pending |
-| DRAWPAGE-08 | Edge case — batch-level `expired`/`cancelled` handling | Design | Pending |
-| DRAWPAGE-09 | Edge case — disallowed duplicate enrichment block type | Design | Pending |
-| DRAWPAGE-10 | Edge case — missing `faq` block omits `FAQPage` JSON-LD | Design | Pending |
-| DRAWPAGE-11 | Edge case — `quantity` exceeds available draws | Design | Pending |
-| DRAWPAGE-12 | Edge case — `scopeWithoutPage` prevents duplicate generation | Design | Pending |
-| DRAWPAGE-13 | P2: Synchronous regeneration — same assembler | Design | Pending |
-| DRAWPAGE-14 | P2: Synchronous regeneration — failure parity | Design | Pending |
-| DRAWPAGE-15 | P3: Auto-publish flag — default manual gate | Design | Pending |
-| DRAWPAGE-16 | P3: Auto-publish flag — direct publish when enabled | Design | Pending |
+| DRAWPAGE-01 | P1: Batch-generated page — batch submission | Execute | Done |
+| DRAWPAGE-02 | P1: Batch-generated page — successful assembly | Execute | Done |
+| DRAWPAGE-03 | P1: Batch-generated page — validation failure handling | Execute | Done |
+| DRAWPAGE-04 | P1: Batch-generated page — facts sourced live, never from AI | Execute | Done |
+| DRAWPAGE-05 | P1: Batch-generated page — publish gate / public routing | Execute | Done |
+| DRAWPAGE-06 | P1: Batch-generated page — JSON-LD | Execute | Done |
+| DRAWPAGE-07 | P1: Batch-generated page — batch polling/completion | Execute | Done |
+| DRAWPAGE-08 | Edge case — batch-level `expired`/`cancelled` handling | Execute | Done |
+| DRAWPAGE-09 | Edge case — disallowed duplicate enrichment block type | Execute | Done |
+| DRAWPAGE-10 | Edge case — missing `faq` block omits `FAQPage` JSON-LD | Execute | Done |
+| DRAWPAGE-11 | Edge case — `quantity` exceeds available draws | Execute | Done |
+| DRAWPAGE-12 | Edge case — `scopeWithoutPage` prevents duplicate generation | Execute | Done |
+| DRAWPAGE-13 | P2: Synchronous regeneration — same assembler | Execute | Done |
+| DRAWPAGE-14 | P2: Synchronous regeneration — failure parity | Execute | Done |
+| DRAWPAGE-15 | P3: Auto-publish flag — default manual gate | Execute | Done |
+| DRAWPAGE-16 | P3: Auto-publish flag — direct publish when enabled | Execute | Done |
 
 **ID format:** `DRAWPAGE-NN`
 
@@ -141,7 +141,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 How we know the feature is successful:
 
-- [ ] A draw with no page can go from `app:create-pages` → batch completion → `Generated` → (manual or auto) `Published` → live at `/{game}/resultado/{concurso}` with zero manual data entry
-- [ ] No AI-authored number ever appears on a rendered draw page — every fact traces to `Draw::raw_data` via `mutateData()`
-- [ ] A malformed/invalid AI response never produces a partially-assembled or publicly reachable page — it always resolves to `Failed`, logged, re-runnable
-- [ ] `DrawPage` model/table are fully retired; all draw content lives on Fabricator `Page` rows
+- [x] A draw with no page can go from `app:create-pages` → batch completion → `Generated` → (manual or auto) `Published` → live at `/{game}/resultado/{concurso}` with zero manual data entry
+- [x] No AI-authored number ever appears on a rendered draw page — every fact traces to `Draw::raw_data` via `mutateData()`
+- [x] A malformed/invalid AI response never produces a partially-assembled or publicly reachable page — it always resolves to `Failed`, logged, re-runnable
+- [x] `DrawPage` model/table are fully retired; all draw content lives on Fabricator `Page` rows

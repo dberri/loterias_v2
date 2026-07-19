@@ -1,7 +1,7 @@
 # Pest Migration & Browser Tests Design
 
 **Spec**: `.specs/features/pest-migration-browser-tests/spec.md`
-**Status**: Draft
+**Status**: Implemented — Verifier PASS (see `validation.md`)
 
 ---
 

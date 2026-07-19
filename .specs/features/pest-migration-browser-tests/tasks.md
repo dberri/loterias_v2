@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/pest-migration-browser-tests/design.md`
-**Status**: Draft
+**Status**: All 15 tasks complete — Verifier PASS (see `validation.md`)
 
 ---
 

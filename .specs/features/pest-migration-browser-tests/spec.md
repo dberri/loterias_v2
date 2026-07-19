@@ -6,10 +6,10 @@ The suite (198 tests, 851 assertions, 37 files) is entirely PHPUnit-class-based 
 
 ## Goals
 
-- [ ] Suite runs on Pest 4 with **zero test loss**: 198 tests / 851 assertions preserved or exceeded at every checkpoint.
-- [ ] All 37 test files converted to Pest function syntax; no PHPUnit `TestCase` subclasses remain under `tests/`.
-- [ ] One end-to-end browser test proves: an admin can open a Fabricator page in Filament, edit it, save it, and see the edit rendered on the public draw-page URL.
-- [ ] A second browser test proves every block configured on a page renders its content on the public page.
+- [x] Suite runs on Pest 4 with **zero test loss**: 198 tests / 851 assertions preserved or exceeded at every checkpoint.
+- [x] All 37 test files converted to Pest function syntax; no PHPUnit `TestCase` subclasses remain under `tests/`.
+- [x] One end-to-end browser test proves: an admin can open a Fabricator page in Filament, edit it, save it, and see the edit rendered on the public draw-page URL.
+- [x] A second browser test proves every block configured on a page renders its content on the public page.
 
 ## Out of Scope
 
@@ -186,8 +186,8 @@ Large scope — every dimension resolves to a requirement or an explicit N/A.
 
 ## Success Criteria
 
-- [ ] `php artisan test` reports ≥198 passing, 0 failing, with zero PHPUnit class-based tests remaining.
-- [ ] A single browser test drives login → edit page in Filament → save → public URL shows the edit.
-- [ ] Emptying any one block's Blade template causes the block-rendering browser test to fail (discrimination check).
-- [ ] The non-browser suite runs green on a machine with no Playwright installed.
-- [ ] `CLAUDE.md` describes the real setup.
+- [x] `php artisan test` reports ≥198 passing, 0 failing, with zero PHPUnit class-based tests remaining.
+- [x] A single browser test drives login → edit page in Filament → save → public URL shows the edit.
+- [x] Emptying any one block's Blade template causes the block-rendering browser test to fail (discrimination check).
+- [x] The non-browser suite runs green on a machine with no Playwright installed.
+- [x] `CLAUDE.md` describes the real setup.
