@@ -78,14 +78,12 @@ final class DrawPagePrompt
                 'enrichment_blocks' => [
                     'type' => 'array',
                     'items' => [
-                        'type' => 'object',
-                        'additionalProperties' => true,
-                        'required' => ['type'],
-                        'properties' => [
-                            'type' => [
-                                'type' => 'string',
-                                'enum' => self::ENRICHMENT_TYPES,
-                            ],
+                        'anyOf' => [
+                            self::proseBlockSchema('rich-text'),
+                            self::commentaryBlockSchema('hot-cold-analysis'),
+                            self::commentaryBlockSchema('comparison-previous'),
+                            self::faqBlockSchema(),
+                            self::proseBlockSchema('how-to-play'),
                         ],
                     ],
                 ],
@@ -96,5 +94,72 @@ final class DrawPagePrompt
     public static function enrichmentTypes(): array
     {
         return self::ENRICHMENT_TYPES;
+    }
+
+    private static function proseBlockSchema(string $type): array
+    {
+        return [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'required' => ['type', 'html'],
+            'properties' => [
+                'type' => [
+                    'type' => 'string',
+                    'enum' => [$type],
+                ],
+                'html' => [
+                    'type' => 'string',
+                ],
+            ],
+        ];
+    }
+
+    private static function commentaryBlockSchema(string $type): array
+    {
+        return [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'required' => ['type', 'commentary'],
+            'properties' => [
+                'type' => [
+                    'type' => 'string',
+                    'enum' => [$type],
+                ],
+                'commentary' => [
+                    'type' => 'string',
+                ],
+            ],
+        ];
+    }
+
+    private static function faqBlockSchema(): array
+    {
+        return [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'required' => ['type', 'items'],
+            'properties' => [
+                'type' => [
+                    'type' => 'string',
+                    'enum' => ['faq'],
+                ],
+                'items' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'object',
+                        'additionalProperties' => false,
+                        'required' => ['question', 'answer'],
+                        'properties' => [
+                            'question' => [
+                                'type' => 'string',
+                            ],
+                            'answer' => [
+                                'type' => 'string',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
     }
 }
