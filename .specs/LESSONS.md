@@ -62,6 +62,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: app/Services/Scraper.php:60 (testing)
 - last seen: 2026-07-18T12:09:27Z
 
+### L-009 — A Filament resource action inherited unchanged from a vendor base still needs its own behavior test if the app spec names it as a preserved addition, since being byte-identical to vendor is not the same as being covered.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `app/Filament/Resources` · harmful: 0
+- features: framework-upgrade-laravel-13-filament-5
+- evidence: app/Filament/Resources/PageResource.php:227 (mutant 2 - visit action url()) (app/Filament/Resources)
+- last seen: 2026-07-18T22:18:07Z
+
+### L-010 — Current-State Inventory counts in a spec (file/class counts) are a snapshot that can go stale between Specify and Execute; verify the count directly from the filesystem before treating a spec's numeric claim as ground truth.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `.specs/features` · harmful: 0
+- features: framework-upgrade-laravel-13-filament-5
+- evidence: P1.6 / app/Filament/Fabricator/PageBlocks (14 files vs spec's stated 15) (.specs/features)
+- last seen: 2026-07-18T22:18:14Z
+
+### L-011 — A 'renders styled' acceptance criterion needs a check that a stylesheet link is actually present in the response, not just that the asset build succeeds — a successful npm/vite build says nothing about whether the layout ever wires the built assets in.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `resources/views` · harmful: 0
+- features: framework-upgrade-laravel-13-filament-5
+- evidence: P2.5 / resources/views/components/filament-fabricator/layouts/draw-page.blade.php + vendor base.blade.php:39-45 (FilamentFabricator::getStyles() never registered) (resources/views)
+- last seen: 2026-07-18T22:18:24Z
+
 ## Quarantined (failed when applied — ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

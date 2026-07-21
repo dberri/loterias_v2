@@ -9,9 +9,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class HowToPlayBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'how-to-play';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('how-to-play')
+        return $block
             ->schema([
                 TextInput::make('title')
                     ->label('Section Title')

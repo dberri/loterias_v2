@@ -6,13 +6,12 @@ use App\Contracts\BatchContentProvider;
 use App\DTOs\BatchStatus;
 use App\DTOs\GenerationRequest;
 use App\DTOs\GenerationResult;
+use App\Services\Content\DrawPagePrompt;
 use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class OpenAiContentProvider implements BatchContentProvider
 {
-    private const SYSTEM_PROMPT = 'You are an online journalist writing a news article about the latest lottery draw. All of your responses should be in Brazilian Portuguese. No Exceptions. You should always write articles with a focus on SEO and user engagement. If the lottery draw includes a jackpot winner, you should use a congratulatory tone. If there are no jackpot winners, you should use a tone of anticipation for the next draw. You should not create a title for the article. Only the body of the article.';
-
     public function __construct(private readonly array $config = []) {}
 
     public function submitBatch(iterable $requests): string
@@ -124,7 +123,7 @@ class OpenAiContentProvider implements BatchContentProvider
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => self::SYSTEM_PROMPT,
+                    'content' => DrawPagePrompt::systemPrompt(),
                 ],
                 [
                     'role' => 'user',

@@ -8,8 +8,8 @@ A Laravel app that scrapes Brazilian lottery results (Mega-Sena, Lotofácil, Qui
 
 ## Tech Stack
 
-- Laravel 12, PHP 8.2+ (Sail image uses 8.3)
-- Filament 3 (`/admin` panel) + `z3d0x/filament-fabricator` (CMS-style page builder)
+- Laravel 13, PHP 8.3+ (Sail image uses 8.5)
+- Filament 5 (`/admin` panel) + `z3d0x/filament-fabricator` v4 (CMS-style page builder)
 - `openai-php/laravel` for OpenAI integration
 - SQLite by default locally; Sail's docker-compose provisions MySQL for the container environment
 - Vite + Tailwind CSS v4
@@ -27,14 +27,24 @@ sail npm run dev                      # Vite dev server
 sail npm run build                    # production frontend build
 ```
 
-Testing (PHPUnit, not Pest — despite older docs, `pestphp` is not installed):
+Testing (Pest 4; PHPUnit 12 is the underlying runner, but every test file uses Pest function syntax — no class-based `Tests\TestCase` subclasses remain):
 
 ```bash
-php artisan test                      # full suite
-./vendor/bin/phpunit                  # equivalent
-./vendor/bin/phpunit --filter=test_name
-php artisan test --testsuite=Feature  # or Unit
+php artisan test                        # ALL suites, including Browser — needs Playwright installed (see below)
+php artisan test --testsuite=Unit,Feature  # fast suite, no browser required — what CI runs
+php artisan test --testsuite=Browser    # browser-only suite (Pest 4 + Playwright), local-only by design
+php artisan test --filter=test_name
+vendor/bin/pest                         # equivalent to `php artisan test`
 ```
+
+The `Browser` testsuite (`tests/Browser/`) drives a real Chromium browser via `pestphp/pest-plugin-browser` + Playwright — it exercises the actual admin-edit → public-render loop (login through `/admin/login`, edit a Fabricator page, confirm the public draw page reflects it) and asserts every implemented page block renders its content. It is **not** run in CI (too slow for now; tracked as follow-up PEST-F1) and requires a one-time local setup:
+
+```bash
+npm install playwright@latest
+npx playwright install
+```
+
+Failing browser tests automatically save a screenshot to `tests/Browser/Screenshots/` (gitignored) named after the failing test.
 
 Code style:
 

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 9,
+  "next_id": 12,
   "lessons": [
     {
       "id": "L-001",
@@ -148,6 +148,60 @@
       ],
       "created": "2026-07-18T12:09:27Z",
       "last_seen": "2026-07-18T12:09:27Z"
+    },
+    {
+      "id": "L-009",
+      "key": "surviving_mutant::a filament resource action inherited unchanged from a vendor base still needs its own behavior test if the app spec names it as a preserved addition since being byte identical to vendor is not the same as being covered",
+      "text": "A Filament resource action inherited unchanged from a vendor base still needs its own behavior test if the app spec names it as a preserved addition, since being byte-identical to vendor is not the same as being covered.",
+      "signal": "surviving_mutant",
+      "scope": "app/Filament/Resources",
+      "status": "candidate",
+      "features": [
+        "framework-upgrade-laravel-13-filament-5"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "app/Filament/Resources/PageResource.php:227 (mutant 2 - visit action url()) (app/Filament/Resources)"
+      ],
+      "created": "2026-07-18T22:18:07Z",
+      "last_seen": "2026-07-18T22:18:07Z"
+    },
+    {
+      "id": "L-010",
+      "key": "spec_precision_gap::current state inventory counts in a spec file class counts are a snapshot that can go stale between specify and execute verify the count directly from the filesystem before treating a spec s numeric claim as ground truth",
+      "text": "Current-State Inventory counts in a spec (file/class counts) are a snapshot that can go stale between Specify and Execute; verify the count directly from the filesystem before treating a spec's numeric claim as ground truth.",
+      "signal": "spec_precision_gap",
+      "scope": ".specs/features",
+      "status": "candidate",
+      "features": [
+        "framework-upgrade-laravel-13-filament-5"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "P1.6 / app/Filament/Fabricator/PageBlocks (14 files vs spec's stated 15) (.specs/features)"
+      ],
+      "created": "2026-07-18T22:18:14Z",
+      "last_seen": "2026-07-18T22:18:14Z"
+    },
+    {
+      "id": "L-011",
+      "key": "ac_gap::a renders styled acceptance criterion needs a check that a stylesheet link is actually present in the response not just that the asset build succeeds a successful npm vite build says nothing about whether the layout ever wires the built assets in",
+      "text": "A 'renders styled' acceptance criterion needs a check that a stylesheet link is actually present in the response, not just that the asset build succeeds — a successful npm/vite build says nothing about whether the layout ever wires the built assets in.",
+      "signal": "ac_gap",
+      "scope": "resources/views",
+      "status": "candidate",
+      "features": [
+        "framework-upgrade-laravel-13-filament-5"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "P2.5 / resources/views/components/filament-fabricator/layouts/draw-page.blade.php + vendor base.blade.php:39-45 (FilamentFabricator::getStyles() never registered) (resources/views)"
+      ],
+      "created": "2026-07-18T22:18:24Z",
+      "last_seen": "2026-07-18T22:18:24Z"
     }
   ]
 }

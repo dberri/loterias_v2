@@ -18,10 +18,13 @@ class DrawSeeder extends Seeder
 
         foreach ($files as $file) {
             if (is_file($path.'/'.$file)) {
+                $rawData = json_decode(file_get_contents($path.'/'.$file), true);
+
                 $draw = new Draw;
                 $draw->type = GamesEnum::MEGA_SENA;
-                $draw->raw_data = json_decode(file_get_contents($path.'/'.$file), true);
+                $draw->raw_data = $rawData;
                 $draw->draw_number = (int) pathinfo($file, PATHINFO_FILENAME);
+                $draw->draw_date = Draw::parseDrawDate($rawData);
                 $draw->save();
             }
         }

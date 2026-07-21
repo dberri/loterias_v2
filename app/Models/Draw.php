@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\NulSafeJson;
 use App\Enums\GamesEnum;
 use App\Enums\PageStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -32,6 +33,28 @@ class Draw extends Model
     public function page(): HasOne
     {
         return $this->hasOne(Page::class);
+    }
+
+    /**
+     * Caixa returns the draw date as d/m/Y in dataApuracao. Shared by every
+     * ingestion path (Scraper, DrawSeeder) so draw_date parsing can't drift
+     * between them the way it did when the NOT NULL constraint was added.
+     *
+     * @param  array<string, mixed>|null  $rawData
+     */
+    public static function parseDrawDate(?array $rawData): ?string
+    {
+        $date = $rawData['dataApuracao'] ?? null;
+
+        if (! is_string($date) || $date === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('d/m/Y', $date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function scopeWithoutPage($query)

@@ -3,19 +3,21 @@
 namespace App\Filament\Fabricator\PageBlocks;
 
 use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class RichTextContentBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'rich-text-content';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('rich-text-content')
+        return $block
             ->label('Rich Text Content')
             ->icon('heroicon-o-document-text')
             ->schema([

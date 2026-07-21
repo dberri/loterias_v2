@@ -7,9 +7,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class TimelineBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'timeline';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('timeline')
+        return $block
             ->schema([
                 //
             ]);

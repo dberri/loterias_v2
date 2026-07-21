@@ -1,12 +1,10 @@
 <?php
 
-namespace Tests\Feature\Database;
+namespace Tests\Feature\Database\DrawDateBackfillMigrationTest;
 
 use App\Enums\GamesEnum;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Tests\TestCase;
 
 /**
  * INFRA-08 — covers the one migration whose behaviour `migrate:fresh` cannot
@@ -24,81 +22,73 @@ use Tests\TestCase;
  * `migrate:rollback --step=N`, so the test does not silently stop covering
  * anything the moment another migration is added after it.
  */
-class DrawDateBackfillMigrationTest extends TestCase
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
+test('it backfills draw date from raw data and then enforces not null', function () {
+    $migration = migration();
+    $migration->down();
+
+    insertWithoutDrawDate(500, '11/03/2003');
+    insertWithoutDrawDate(2194, '30/12/2019');
+
+    $migration->up();
+
+    expect(drawDateOf(500))->toBe('2003-03-11');
+    expect(drawDateOf(2194))->toBe('2019-12-30');
+
+    expect(DB::selectOne(
+        "SELECT is_nullable FROM information_schema.columns
+         WHERE table_name = 'draws' AND column_name = 'draw_date'"
+    )->is_nullable)->toBe('NO');
+});
+
+/**
+ * The backfill reads dataApuracao out of a json column. On Postgres the
+ * raw query builder hands that column back as a string rather than an
+ * array, and a decode that assumed otherwise would leave every draw_date
+ * null — which the NOT NULL step would then turn into a failed migration.
+ */
+test('the backfill decodes raw data correctly on postgres', function () {
+    $migration = migration();
+    $migration->down();
+
+    insertWithoutDrawDate(500, '11/03/2003');
+
+    $migration->up();
+
+    expect(drawDateOf(500))->not->toBeNull();
+});
+
+test('the tightened column rejects a draw with no date', function () {
+    DB::table('draws')->insert([
+        'type' => GamesEnum::MEGA_SENA->value,
+        'draw_number' => 9001,
+        'draw_date' => null,
+        'raw_data' => json_encode(['dataApuracao' => '11/03/2003']),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+})->throws(QueryException::class);
+
+function migration(): object
 {
-    use RefreshDatabase;
+    return require database_path('migrations/2025_08_24_190138_add_draw_date_to_draws_table.php');
+}
 
-    public function test_it_backfills_draw_date_from_raw_data_and_then_enforces_not_null(): void
-    {
-        $migration = $this->migration();
-        $migration->down();
+function drawDateOf(int $drawNumber): ?string
+{
+    $value = DB::table('draws')->where('draw_number', $drawNumber)->value('draw_date');
 
-        $this->insertWithoutDrawDate(500, '11/03/2003');
-        $this->insertWithoutDrawDate(2194, '30/12/2019');
+    return $value === null ? null : substr((string) $value, 0, 10);
+}
 
-        $migration->up();
-
-        $this->assertSame('2003-03-11', $this->drawDateOf(500));
-        $this->assertSame('2019-12-30', $this->drawDateOf(2194));
-
-        $this->assertSame('NO', DB::selectOne(
-            "SELECT is_nullable FROM information_schema.columns
-             WHERE table_name = 'draws' AND column_name = 'draw_date'"
-        )->is_nullable);
-    }
-
-    /**
-     * The backfill reads dataApuracao out of a json column. On Postgres the
-     * raw query builder hands that column back as a string rather than an
-     * array, and a decode that assumed otherwise would leave every draw_date
-     * null — which the NOT NULL step would then turn into a failed migration.
-     */
-    public function test_the_backfill_decodes_raw_data_correctly_on_postgres(): void
-    {
-        $migration = $this->migration();
-        $migration->down();
-
-        $this->insertWithoutDrawDate(500, '11/03/2003');
-
-        $migration->up();
-
-        $this->assertNotNull($this->drawDateOf(500));
-    }
-
-    public function test_the_tightened_column_rejects_a_draw_with_no_date(): void
-    {
-        $this->expectException(QueryException::class);
-
-        DB::table('draws')->insert([
-            'type' => GamesEnum::MEGA_SENA->value,
-            'draw_number' => 9001,
-            'draw_date' => null,
-            'raw_data' => json_encode(['dataApuracao' => '11/03/2003']),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
-
-    private function migration(): object
-    {
-        return require database_path('migrations/2025_08_24_190138_add_draw_date_to_draws_table.php');
-    }
-
-    private function drawDateOf(int $drawNumber): ?string
-    {
-        $value = DB::table('draws')->where('draw_number', $drawNumber)->value('draw_date');
-
-        return $value === null ? null : substr((string) $value, 0, 10);
-    }
-
-    private function insertWithoutDrawDate(int $drawNumber, string $dataApuracao): void
-    {
-        DB::table('draws')->insert([
-            'type' => GamesEnum::MEGA_SENA->value,
-            'draw_number' => $drawNumber,
-            'raw_data' => json_encode(['dataApuracao' => $dataApuracao, 'listaDezenas' => ['01', '02']]),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
+function insertWithoutDrawDate(int $drawNumber, string $dataApuracao): void
+{
+    DB::table('draws')->insert([
+        'type' => GamesEnum::MEGA_SENA->value,
+        'draw_number' => $drawNumber,
+        'raw_data' => json_encode(['dataApuracao' => $dataApuracao, 'listaDezenas' => ['01', '02']]),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
 }

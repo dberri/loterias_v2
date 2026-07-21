@@ -3,23 +3,30 @@
 namespace App\Filament\Resources;
 
 use App\Enums\GamesEnum;
-use App\Filament\Resources\DrawResource\Pages;
+use App\Filament\Resources\DrawResource\Pages\ListDraws;
+use App\Filament\Resources\DrawResource\Pages\ViewDraw;
 use App\Models\Draw;
+use Carbon\Carbon;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class DrawResource extends Resource
 {
     protected static ?string $model = Draw::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label('Jogo')
                     ->formatStateUsing(fn (GamesEnum $state): string => match ($state) {
                         GamesEnum::MEGA_SENA => 'Mega Sena',
@@ -36,31 +43,31 @@ class DrawResource extends Resource
                     })
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('draw_date')
+                TextColumn::make('draw_date')
                     ->label('Data Apuração')
                     ->formatStateUsing(function ($state, $record) {
-                        return \Carbon\Carbon::createFromFormat('d/m/Y', $record?->raw_data['dataApuracao'] ?? null)->format('d/m/Y');
+                        return Carbon::createFromFormat('d/m/Y', $record?->raw_data['dataApuracao'] ?? null)->format('d/m/Y');
                     })
                     ->sortable(),
-                Tables\Columns\TextColumn::make('draw_number')
+                TextColumn::make('draw_number')
                     ->label('Concurso')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_accumulated')
+                IconColumn::make('is_accumulated')
                     ->label('Acumulado')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('formatted_main_prize')
+                TextColumn::make('formatted_main_prize')
                     ->label('Prêmio Principal'),
-                Tables\Columns\TextColumn::make('main_prize_winners')
+                TextColumn::make('main_prize_winners')
                     ->label('Ganhadores'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label('Tipo de Jogo')
                     ->options([
                         'MEGA_SENA' => 'Mega Sena',
@@ -68,12 +75,12 @@ class DrawResource extends Resource
                         'QUINA' => 'Quina',
                     ]),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('draw_date', 'desc');
@@ -89,8 +96,8 @@ class DrawResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDraws::route('/'),
-            'view' => Pages\ViewDraw::route('/{record}'),
+            'index' => ListDraws::route('/'),
+            'view' => ViewDraw::route('/{record}'),
         ];
     }
 }

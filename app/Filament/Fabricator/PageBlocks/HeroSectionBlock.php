@@ -2,6 +2,7 @@
 
 namespace App\Filament\Fabricator\PageBlocks;
 
+use App\Models\Draw;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -12,9 +13,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class HeroSectionBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'hero-section';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('hero-section')
+        return $block
             ->label('Hero Section')
             ->icon('heroicon-o-star')
             ->schema([
@@ -113,7 +116,7 @@ class HeroSectionBlock extends PageBlock
         $drawId = $data['draw_id'] ?? null;
 
         if ($drawId) {
-            $draw = \App\Models\Draw::with(['page'])->find($drawId);
+            $draw = Draw::with(['page'])->find($drawId);
 
             if ($draw) {
                 $data['draw'] = $draw;
@@ -131,7 +134,7 @@ class HeroSectionBlock extends PageBlock
         }
 
         if ($data['show_lottery_highlights'] ?? false) {
-            $data['latest_results'] = \App\Models\Draw::with(['page'])
+            $data['latest_results'] = Draw::with(['page'])
                 ->orderBy('draw_date', 'desc')
                 ->limit(3)
                 ->get()

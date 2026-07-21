@@ -4,7 +4,7 @@ namespace App\Filament\Resources\PageResource\Pages;
 
 use App\Enums\PageStatus;
 use App\Filament\Resources\PageResource;
-use Filament\Pages\Actions\Action;
+use Filament\Actions\Action;
 use Illuminate\Validation\ValidationException;
 use Z3d0X\FilamentFabricator\Resources\PageResource\Pages\EditPage as VendorEditPage;
 
@@ -12,9 +12,9 @@ class EditPage extends VendorEditPage
 {
     protected static string $resource = PageResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
-        return array_merge(parent::getActions(), [
+        return array_merge(parent::getHeaderActions(), [
             Action::make('publish')
                 ->label('Publish')
                 ->color('success')

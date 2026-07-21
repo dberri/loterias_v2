@@ -4,18 +4,18 @@ namespace App\Filament\Resources\DrawResource\Pages;
 
 use App\Filament\Resources\DrawResource;
 use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class ViewDraw extends ViewRecord
 {
     protected static string $resource = DrawResource::class;
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('Informações do Sorteio')
                     ->schema([

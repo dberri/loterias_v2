@@ -7,9 +7,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class ComparisonTableBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'comparison-table';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('comparison-table')
+        return $block
             ->schema([
                 //
             ]);

@@ -11,9 +11,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class StatisticsCardsBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'statistics-cards';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('statistics-cards')
+        return $block
             ->label('Statistics Cards')
             ->icon('heroicon-o-chart-bar')
             ->schema([

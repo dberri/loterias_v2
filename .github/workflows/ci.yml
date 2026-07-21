@@ -42,7 +42,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
           extensions: pdo, pdo_pgsql, pgsql, mbstring, bcmath, intl, zip
           coverage: none
 
@@ -68,4 +68,7 @@ jobs:
         run: php artisan migrate --force
 
       - name: Run test suite
-        run: php artisan test
+        # Excludes the Browser suite deliberately (PEST-15): it requires
+        # Playwright/ext-sockets and is local-only by design (PEST-F1) — bare
+        # `php artisan test` would pick it up and fail on missing Playwright.
+        run: php artisan test --testsuite=Unit,Feature

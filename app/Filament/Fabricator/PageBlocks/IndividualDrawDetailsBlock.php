@@ -11,9 +11,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class IndividualDrawDetailsBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'individual-draw-details';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('individual-draw-details')
+        return $block
             ->label('Individual Draw Details')
             ->icon('heroicon-o-document-text')
             ->schema([
@@ -25,13 +27,15 @@ class IndividualDrawDetailsBlock extends PageBlock
                         ->limit(50)
                         ->get()
                         ->mapWithKeys(fn ($draw) => [
-                            $draw->id => "{$draw->type} - Concurso {$draw->draw_number}",
+                            $draw->id => "{$draw->type->value} - Concurso {$draw->draw_number}",
                         ])
                         ->toArray()
                     )
-                    ->getOptionLabelUsing(fn ($value): ?string => Draw::find($value)?->let(fn ($draw) => "{$draw->type} - Concurso {$draw->draw_number}"
-                    )
-                    ),
+                    ->getOptionLabelUsing(function ($value): ?string {
+                        $draw = Draw::find($value);
+
+                        return $draw ? "{$draw->type->value} - Concurso {$draw->draw_number}" : null;
+                    }),
 
                 Toggle::make('show_prize_breakdown')
                     ->label('Show Prize Breakdown')

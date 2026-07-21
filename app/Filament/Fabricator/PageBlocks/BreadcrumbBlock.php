@@ -7,9 +7,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class BreadcrumbBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'breadcrumb';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('breadcrumb')
+        return $block
             ->schema([
                 //
             ]);

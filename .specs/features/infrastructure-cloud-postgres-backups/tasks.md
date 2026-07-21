@@ -10,7 +10,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 **Design**: `.specs/features/infrastructure-cloud-postgres-backups/design.md`
 **Spec**: `.specs/features/infrastructure-cloud-postgres-backups/spec.md`
-**Status**: Approved — executing code-only scope
+**Status**: Code-only scope (T1–T10, T12–T18) done — Verifier's original 3 Major + 4 Minor gaps all resolved since (see `.specs/STATE.md`). T11/T19/T20/T21 remain operator-gated, needing Laravel Cloud credentials.
 
 ---
 
@@ -124,12 +124,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] `notify(string $key, string $message)` sends an email on first call for a key
-- [ ] A repeat call with the same key inside the suppression window sends **nothing** (this is the whole point — a backup broken for a week emails once, not seven times)
-- [ ] The window is configurable and expiry restores sending
-- [ ] Distinct keys never suppress each other
-- [ ] Gate check passes: `php artisan test --testsuite=Unit`
-- [ ] Test count: ≥6 new tests pass (no silent deletions)
+- [x] `notify(string $key, string $message)` sends an email on first call for a key
+- [x] A repeat call with the same key inside the suppression window sends **nothing** (this is the whole point — a backup broken for a week emails once, not seven times)
+- [x] The window is configurable and expiry restores sending
+- [x] Distinct keys never suppress each other
+- [x] Gate check passes: `php artisan test --testsuite=Unit`
+- [x] Test count: ≥6 new tests pass (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
@@ -149,12 +149,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Cast strips `\0` on write; read path returns an array identical to the previous `'array'` cast for NUL-free payloads
-- [ ] A real NUL-bearing seeded payload round-trips and **every** `Draw` accessor returns the same value it returned under the old cast (this is the assertion that licenses D3 — see the AD-001 tension note)
-- [ ] `nomeTimeCoracaoMesSorte` is present post-write, minus the NUL — the field is not dropped
-- [ ] Fixtures come from the real seeded corpus per the Fixture rule, including ≥1 of the 415 NUL-bearing files
-- [ ] Gate check passes: `php artisan test --testsuite=Unit`
-- [ ] Test count: ≥8 new tests pass
+- [x] Cast strips `\0` on write; read path returns an array identical to the previous `'array'` cast for NUL-free payloads
+- [x] A real NUL-bearing seeded payload round-trips and **every** `Draw` accessor returns the same value it returned under the old cast (this is the assertion that licenses D3 — see the AD-001 tension note)
+- [x] `nomeTimeCoracaoMesSorte` is present post-write, minus the NUL — the field is not dropped
+- [x] Fixtures come from the real seeded corpus per the Fixture rule, including ≥1 of the 415 NUL-bearing files
+- [x] Gate check passes: `php artisan test --testsuite=Unit`
+- [x] Test count: ≥8 new tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -179,10 +179,10 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] `grep` sweep completed for `DB::`, `whereJsonContains`, `whereJsonPath`, `whereRaw`, `selectRaw`, `orderByRaw` across `app/`, `database/`, `routes/` — results recorded in the audit doc
-- [ ] Every finding is either replaced with a portable equivalent or documented as intentionally Postgres-specific with a reason
-- [ ] The audit doc lists what was searched, so a future reader can tell coverage from luck
-- [ ] Gate check passes: `vendor/bin/pint --dirty && php artisan test`
+- [x] `grep` sweep completed for `DB::`, `whereJsonContains`, `whereJsonPath`, `whereRaw`, `selectRaw`, `orderByRaw` across `app/`, `database/`, `routes/` — results recorded in the audit doc
+- [x] Every finding is either replaced with a portable equivalent or documented as intentionally Postgres-specific with a reason
+- [x] The audit doc lists what was searched, so a future reader can tell coverage from luck
+- [x] Gate check passes: `vendor/bin/pint --dirty && php artisan test`
 
 **Tests**: none (matrix: migrations = none; correctness is proven by T8 running the suite on Postgres)
 **Gate**: build
@@ -202,12 +202,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] `mysql` service replaced by `pgsql`; `sail-mysql` volume replaced by `sail-pgsql`
-- [ ] `laravel.test.depends_on` updated
-- [ ] Healthcheck uses `pg_isready`
-- [ ] Testing-database bootstrap script repointed to Sail's Postgres equivalent
-- [ ] `./vendor/bin/sail up -d` brings up a healthy Postgres container
-- [ ] Postgres major version recorded in the audit doc for parity tracking
+- [x] `mysql` service replaced by `pgsql`; `sail-mysql` volume replaced by `sail-pgsql`
+- [x] `laravel.test.depends_on` updated
+- [x] Healthcheck uses `pg_isready`
+- [x] Testing-database bootstrap script repointed to Sail's Postgres equivalent
+- [x] `./vendor/bin/sail up -d` brings up a healthy Postgres container
+- [x] Postgres major version recorded in the audit doc for parity tracking
 
 **Tests**: none (matrix: docker-compose = none)
 **Gate**: build
@@ -227,10 +227,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] `'default' => env('DB_CONNECTION', 'pgsql')`
-- [ ] `sqlite` and `mysql` connection arrays **deleted**, not commented out — a commented fallback is still an invitation (AD-008)
-- [ ] `.env.example` updated to Postgres credentials matching `docker-compose.yml`
-- [ ] `database/database.sqlite` removed if present, and the `post-create-project-cmd` composer hook that touches it updated
+- [x] `'default' => env('DB_CONNECTION', 'pgsql')`
+- [x] `sqlite` and `mysql` connection arrays **deleted**, not commented out — a commented fallback is still an invitation (AD-008)
+- [x] `.env.example` updated to Postgres credentials matching `docker-compose.yml`
+- [x] `database/database.sqlite` removed if present, and the `post-create-project-cmd` composer hook that touches it updated
+
+**Verifier note (2026-07-18)**: all four literal items above are satisfied, but retirement is incomplete in *effect* — Laravel 11+ merges the framework's own bundled `config/database.php`, so `sqlite`/`mysql`/`mariadb` stay reachable via `DB_CONNECTION` despite deletion here. Tracked as the still-open **INFRA-22**, not a failure of this task's own checklist.
 
 **Tests**: none (matrix: config = none)
 **Gate**: build
@@ -250,9 +252,9 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] `DB_CONNECTION=pgsql` and a dedicated test database configured; `DB_DATABASE=:memory:` removed
-- [ ] The existing suite runs against Postgres (failures are expected here and are T8's job to resolve — this task's gate is that the suite *executes*, not that it is green)
-- [ ] From this task onward, all gates require `sail up -d`
+- [x] `DB_CONNECTION=pgsql` and a dedicated test database configured; `DB_DATABASE=:memory:` removed
+- [x] The existing suite runs against Postgres (failures are expected here and are T8's job to resolve — this task's gate is that the suite *executes*, not that it is green)
+- [x] From this task onward, all gates require `sail up -d`
 
 **Tests**: none (matrix: config = none)
 **Gate**: build
@@ -272,11 +274,13 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Workflow runs on push and PR
-- [ ] Postgres service container at the same major version as T4
-- [ ] Steps: checkout → PHP setup → `composer install` → `php artisan migrate --force` → `php artisan test`
-- [ ] `vendor/bin/pint --test` enforced as a lint gate
-- [ ] The workflow is observed passing on a real run — a workflow file that has never executed is not CI
+- [x] Workflow runs on push and PR
+- [x] Postgres service container at the same major version as T4
+- [x] Steps: checkout → PHP setup → `composer install` → `php artisan migrate --force` → `php artisan test`
+- [x] `vendor/bin/pint --test` enforced as a lint gate
+- [x] The workflow is observed passing on a real run — a workflow file that has never executed is not CI
+
+**Resolved since validation.md (2026-07-18)**: at verification time this task was `❌ Unmet` (**Gap 1**) — the branch was unpushed and `gh run list` returned `[]`. Since then `feat/infrastructure-postgres-backups` was pushed and CI observed green multiple times (e.g. run `29651679467`, 2026-07-18T16:17:54Z; `gh run list --repo dberri/loterias_v2` shows further green runs on `chore/upgrade-laravel-filament` and `test/pest-migration-browser-tests` since, confirming the workflow itself is sound). Gap 1 is closed.
 
 **Tests**: none (matrix: CI config = none)
 **Gate**: build
@@ -296,10 +300,10 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] `php artisan migrate:fresh` succeeds against an empty Postgres DB with zero dialect errors
-- [ ] The **entire pre-existing suite** passes on Postgres — baseline is the count from `seo-draw-page-generation`'s validation (76 tests); a lower count means tests were deleted, not fixed
-- [ ] Any migration change preserves the original schema intent — no column silently retyped to dodge an error
-- [ ] Gate check passes: `vendor/bin/pint --dirty && php artisan test`
+- [x] `php artisan migrate:fresh` succeeds against an empty Postgres DB with zero dialect errors
+- [x] The **entire pre-existing suite** passes on Postgres — baseline is the count from `seo-draw-page-generation`'s validation (76 tests); a lower count means tests were deleted, not fixed
+- [x] Any migration change preserves the original schema intent — no column silently retyped to dodge an error
+- [x] Gate check passes: `vendor/bin/pint --dirty && php artisan test`
 
 **Tests**: none directly (matrix: migrations = none); **the gate is the entire existing suite**
 **Gate**: build
@@ -319,13 +323,13 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] A real `raw_data` payload written to and read from Postgres returns identical values from **every** `Draw` accessor
-- [ ] A NUL-bearing payload persists without error (INFRA-21 proven against the actual engine, not asserted in prose)
-- [ ] A **newly scraped** draw carrying a NUL persists — covers future writes, not just the backfill (spec AC P2.8)
-- [ ] A pre-2483 zero-padded payload (`"004"`) round-trips unchanged — the format shift is preserved, not normalized
-- [ ] `pages.blocks` round-trips with nested block structure intact
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥8 new tests pass
+- [x] A real `raw_data` payload written to and read from Postgres returns identical values from **every** `Draw` accessor
+- [x] A NUL-bearing payload persists without error (INFRA-21 proven against the actual engine, not asserted in prose)
+- [x] A **newly scraped** draw carrying a NUL persists — covers future writes, not just the backfill (spec AC P2.8)
+- [x] A pre-2483 zero-padded payload (`"004"`) round-trips unchanged — the format shift is preserved, not normalized
+- [x] `pages.blocks` round-trips with nested block structure intact
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥8 new tests pass
 
 **Tests**: feature
 **Gate**: full
@@ -345,13 +349,13 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Reads from the pre-cutover source connection and writes `draws` to Postgres
-- [ ] Validates **row-count parity AND deep comparison of a random sample of `raw_data`** — row counts alone cannot detect serialization corruption, which is the exact failure this migration risks
-- [ ] Deep comparison tolerates **only** the NUL stripping from T2 and nothing else; any other delta fails validation
-- [ ] On validation failure: exits non-zero with the specific mismatch, leaves the source snapshot untouched, and does not switch config (INFRA-20)
-- [ ] `--dry-run` reports what would move without writing
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥7 new tests pass, covering happy path, count mismatch, and payload corruption
+- [x] Reads from the pre-cutover source connection and writes `draws` to Postgres
+- [x] Validates **row-count parity AND deep comparison of a random sample of `raw_data`** — row counts alone cannot detect serialization corruption, which is the exact failure this migration risks
+- [x] Deep comparison tolerates **only** the NUL stripping from T2 and nothing else; any other delta fails validation
+- [x] On validation failure: exits non-zero with the specific mismatch, leaves the source snapshot untouched, and does not switch config (INFRA-20)
+- [x] `--dry-run` reports what would move without writing
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥7 new tests pass, covering happy path, count mismatch, and payload corruption
 
 **Tests**: feature
 **Gate**: full
@@ -394,12 +398,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Writes `exports/{YYYY-MM-DD}/draws.ndjson`, one row per line
-- [ ] Streams rather than loading 2,600+ rows into memory at once
-- [ ] Export never mutates `Draw` — read-only path
-- [ ] NDJSON is valid line-by-line and reconstructs the original rows
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥5 new tests pass
+- [x] Writes `exports/{YYYY-MM-DD}/draws.ndjson`, one row per line
+- [x] Streams rather than loading 2,600+ rows into memory at once
+- [x] Export never mutates `Draw` — read-only path
+- [x] NDJSON is valid line-by-line and reconstructs the original rows
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥5 new tests pass
 
 **Tests**: feature
 **Gate**: full
@@ -419,11 +423,11 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Exports `pages.ndjson` alongside `draws.ndjson`
-- [ ] **`pages` table absent** → exports `draws` alone and **succeeds** (INFRA-18)
-- [ ] **`pages` empty** → produces a valid, well-formed, zero-row artifact with a truthful count of `0` — not a skipped file, so an empty backup stays distinguishable from a missing one (INFRA-19)
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥6 new tests pass, one per edge case above
+- [x] Exports `pages.ndjson` alongside `draws.ndjson`
+- [x] **`pages` table absent** → exports `draws` alone and **succeeds** (INFRA-18)
+- [x] **`pages` empty** → produces a valid, well-formed, zero-row artifact with a truthful count of `0` — not a skipped file, so an empty backup stays distinguishable from a missing one (INFRA-19)
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥6 new tests pass, one per edge case above
 
 **Tests**: feature
 **Gate**: full
@@ -442,12 +446,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Manifest records export timestamp, per-table row counts, per-artifact sha256, and app/schema version
-- [ ] After writing, the job **re-reads each artifact from the disk** and recomputes its checksum — "the write returned success" is not verification
-- [ ] Checksum mismatch → the export is marked **failed**, not merely logged
-- [ ] A test corrupts an artifact post-write and asserts the job detects it — the feature's single most dangerous failure is a silently corrupt backup, so it needs a test that manufactures one
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥6 new tests pass
+- [x] Manifest records export timestamp, per-table row counts, per-artifact sha256, and app/schema version
+- [x] After writing, the job **re-reads each artifact from the disk** and recomputes its checksum — "the write returned success" is not verification
+- [x] Checksum mismatch → the export is marked **failed**, not merely logged
+- [x] A test corrupts an artifact post-write and asserts the job detects it — the feature's single most dangerous failure is a silently corrupt backup, so it needs a test that manufactures one
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥6 new tests pass
 
 **Tests**: feature
 **Gate**: full
@@ -467,12 +471,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Checksum mismatch → alert
-- [ ] Storage unreachable → job fails **loudly** and alerts, rather than logging and exiting zero
-- [ ] Failed job lands in Laravel's `failed_jobs` table (AD-009 — no custom dead-letter table)
-- [ ] Repeated nightly failures produce **one** email, not one per night (exercises T1's dedup through the real caller)
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥5 new tests pass
+- [x] Checksum mismatch → alert
+- [x] Storage unreachable → job fails **loudly** and alerts, rather than logging and exiting zero
+- [x] Failed job lands in Laravel's `failed_jobs` table (AD-009 — no custom dead-letter table)
+- [x] Repeated nightly failures produce **one** email, not one per night (exercises T1's dedup through the real caller)
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥5 new tests pass
 
 **Tests**: feature
 **Gate**: full
@@ -492,11 +496,11 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Job scheduled nightly, off-peak
-- [ ] `withoutOverlapping` so a slow export cannot stack
-- [ ] A test asserts the schedule entry is registered with the expected cron expression
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥2 new tests pass
+- [x] Job scheduled nightly, off-peak
+- [x] `withoutOverlapping` so a slow export cannot stack
+- [x] A test asserts the schedule entry is registered with the expected cron expression
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥2 new tests pass
 
 **Tests**: feature
 **Gate**: full
@@ -515,10 +519,12 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Daily artifacts retained 35 days; monthly retained 12 months
-- [ ] Enforced by **bucket lifecycle policy, not application code** — a lifecycle policy cannot forget to run
-- [ ] Applied configuration documented so it is reproducible after an account change
-- [ ] Gate check passes: `vendor/bin/pint --dirty && php artisan test`
+- [x] Daily artifacts retained 35 days; monthly retained 12 months
+- [x] Enforced by **bucket lifecycle policy, not application code** for the daily tier; the monthly tier is necessarily writer-side (see note) — both are exercised
+- [x] Applied configuration documented so it is reproducible after an account change
+- [x] Gate check passes: `vendor/bin/pint --dirty && php artisan test`
+
+**Gap 3 resolved since validation.md (2026-07-18)**: at verification time `ExportCorpus.php` wrote only `exports/{Y-m-d}/`, so the monthly tier matched no real artifact. Since then `ExportCorpus::promoteToMonthly()` (`app/Jobs/ExportCorpus.php:132-159`) was added — it copies the export into a sibling `monthly/{Y-m}/` prefix (never nested under `exports/`, so the 35-day daily expiry cannot delete it), keyed on absence so a month whose first night failed still gets promoted from the next successful run, and self-verifies its own checksums. Fully covered by `tests/Feature/Jobs/ExportCorpusRetentionTest.php` (7 tests: promotion, sibling-prefix placement, no duplicate promotion within a month, one artifact per month, late promotion after a missed first night, checksum and byte parity against the source daily). AD-013 records the underlying decision (a bucket lifecycle rule cannot express "first export of the month" — promotion is necessarily writer-side). The bucket lifecycle policy itself has still never been applied to a real bucket (operator-gated, T20/T21).
 
 **Tests**: none (matrix: infra config = none)
 **Gate**: build
@@ -538,12 +544,14 @@ T18 → T19 → T20 → T21
 
 **Done when**:
 
-- [ ] Restores both tables from an artifact directory into an empty DB
-- [ ] Validates each artifact's checksum against the manifest **before** importing — restoring from a corrupt artifact is worse than refusing
-- [ ] Asserts row-count parity against the manifest after import
-- [ ] The runbook documents the `jq`-and-shell-loop fallback path, so the artifact stays restorable without this application's code (the reason NDJSON was chosen in D2)
-- [ ] Gate check passes: `php artisan test`
-- [ ] Test count: ≥6 new tests pass, including a corrupt-artifact refusal
+- [x] Restores both tables from an artifact directory into an empty DB
+- [x] Validates each artifact's checksum against the manifest **before** importing — restoring from a corrupt artifact is worse than refusing
+- [x] Asserts row-count parity against the manifest after import
+- [x] The runbook documents the `jq`-and-shell-loop fallback path, so the artifact stays restorable without this application's code (the reason NDJSON was chosen in D2)
+- [x] Gate check passes: `php artisan test`
+- [x] Test count: ≥6 new tests pass, including a corrupt-artifact refusal
+
+**Gap 2 resolved since validation.md (2026-07-18)**: at verification time this checklist's literal items were all satisfied, but never captured the second half of INFRA-15's actual spec AC ("sampled `Published` pages render correctly" after restore, not just that rows reconstruct), and `RestoreCorpusTest.php` had no `assertOk()`/HTTP assertion. Since then `test('a previously published page still renders after restore', ...)` was added (`tests/Feature/Commands/RestoreCorpusTest.php:174-192`) — it publishes a page, confirms it renders, exports, empties the DB, confirms a 404, restores, and confirms `assertOk()` again. INFRA-15 is now fully covered, not just reconstruction.
 
 **Tests**: feature
 **Gate**: full

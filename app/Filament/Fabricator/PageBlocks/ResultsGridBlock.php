@@ -12,9 +12,11 @@ use Z3d0X\FilamentFabricator\PageBlocks\PageBlock;
 
 class ResultsGridBlock extends PageBlock
 {
-    public static function getBlockSchema(): Block
+    protected static string $name = 'results-grid';
+
+    public static function defineBlock(Block $block): Block
     {
-        return Block::make('results-grid')
+        return $block
             ->label('Results Grid')
             ->icon('heroicon-o-table-cells')
             ->schema([
