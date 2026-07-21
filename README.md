@@ -126,14 +126,12 @@ sail artisan app:create-content megasena 2500
 ```
 
 #### `sail artisan app:create-pages [game] [quantity]`
-Submits an OpenAI Batch job to generate content for multiple draws that don't have a page yet. Creates `Page` rows immediately with `status = generating` and empty content; the batch result has to be picked up later to fill in the real content.
+Submits an OpenAI Batch job to generate content for multiple draws that don't have a page yet. Creates `Page` rows immediately with `status = generating` and empty content, then dispatches `App\Jobs\CheckCompletionBatch` (delayed 10 minutes) to poll the batch and fill in the real content once it completes. Requires a queue worker (`sail artisan queue:work`) running to process that job.
 
 **Example:**
 ```bash
 sail artisan app:create-pages megasena 50
 ```
-
-> ⚠️ **Known gap**: nothing currently dispatches `App\Jobs\CheckCompletionBatch` after `submitBatch()` runs, so batch-created pages stay stuck at `generating` unless someone manually dispatches that job (e.g. `App\Jobs\CheckCompletionBatch::dispatch($batchId)` via `sail artisan tinker`) with a queue worker (`sail artisan queue:work`) running to process it. For a single page, prefer `app:create-content` above, which needs neither a batch job nor a queue worker.
 
 ## Publishing a page end-to-end
 

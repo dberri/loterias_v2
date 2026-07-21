@@ -6,6 +6,7 @@ use App\Contracts\BatchContentProvider;
 use App\DTOs\GenerationRequest;
 use App\Enums\GamesEnum;
 use App\Enums\PageStatus;
+use App\Jobs\CheckCompletionBatch;
 use App\Models\Draw;
 use App\Models\Page;
 use App\Services\Content\DrawPagePrompt;
@@ -87,6 +88,8 @@ class CreatePages extends Command
                 ],
             );
         }
+
+        CheckCompletionBatch::dispatch($batchId)->delay(now()->addMinutes(10));
 
         $this->info(sprintf('Submitted batch %s for %d draws.', $batchId, $draws->count()));
 

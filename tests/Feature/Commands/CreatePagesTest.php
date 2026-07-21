@@ -5,9 +5,11 @@ namespace Tests\Feature\Commands\CreatePagesTest;
 use App\Contracts\BatchContentProvider;
 use App\Enums\GamesEnum;
 use App\Enums\PageStatus;
+use App\Jobs\CheckCompletionBatch;
 use App\Models\Draw;
 use App\Models\Page;
 use App\Services\ContentProviderManager;
+use Illuminate\Support\Facades\Queue;
 use Mockery;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -33,6 +35,23 @@ test('create pages submits one batch and creates generating pages', function () 
     expect($secondDraw->fresh()->page->status)->toBe(PageStatus::Generating);
     expect($firstDraw->fresh()->page->batch_id)->toBe('batch-123');
     expect($firstDraw->fresh()->page->provider)->toBe('openai');
+});
+
+test('create pages dispatches CheckCompletionBatch for the submitted batch', function () {
+    Queue::fake();
+
+    Draw::factory()->fixture(GamesEnum::MEGA_SENA->value, 2607)->create();
+    $provider = recordingProvider('batch-789');
+    bindProvider($provider);
+
+    $this->artisan('app:create-pages', [
+        'game' => GamesEnum::MEGA_SENA->value,
+        'quantity' => 1,
+    ])->assertExitCode(0);
+
+    Queue::assertPushed(CheckCompletionBatch::class, function (CheckCompletionBatch $job) {
+        return $job->batchId === 'batch-789';
+    });
 });
 
 test('create pages skips draws that already have pages and limits to available draws', function () {
